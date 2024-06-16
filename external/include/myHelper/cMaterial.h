@@ -1,17 +1,15 @@
 #pragma once
+#include <glm/glm.hpp>
+#include <glad/glad.h>
 
 class Material {
-public: 
-	glm::vec4  baseColor = glm::vec4(1.0);
-	GLuint colorTextureID;
-	GLuint normalTextureID;
-	GLuint aoTextureID;
+public:
+    glm::vec4 baseColor;
+    GLuint colorTextureID;
+    GLuint normalTextureID;
+    GLuint aoTextureID;
+    bool hasTexture;
 
-	Material() : baseColor(1.0f, 1.0f, 1.0f, 1.0f)
-	{
-	}
-	Material(glm::vec4 nBaseColor)
-	{
-		baseColor = nBaseColor;
-	}
+    Material();
+    Material(glm::vec4 nBaseColor);
 };

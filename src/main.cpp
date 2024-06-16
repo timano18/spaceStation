@@ -220,6 +220,7 @@ int main(int argc, char* argv[])
     char boneModelPath[] = "../resources/objects/test/bone.glb";
     char appliedBoneModelPath[] = "../resources/objects/test/boneApplied.glb";
     char sponzaModelPath[] = "../resources/objects/Sponza/glTF/Sponza.gltf";
+    char sponzaDracoModelPath[] = "../resources/objects/Sponza/glTF/SponzaDraco.gltf";
     char sponzaDdsModelPath[] = "../resources/objects/SponzaDDS/glTF/Sponza.gltf";
     char twoCylinderEngine[] = "../resources/objects/2CylinderEngine/glTF/2CylinderEngine.gltf";
     char chessPath[] = "../resources/objects/ABeautifulGame/glTF/ABeautifulGame.gltf";
