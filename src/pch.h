@@ -1,0 +1,23 @@
+#pragma once
+
+#include <Windows.h>
+#include <glad/glad.h> 
+#include <imgui/imgui.h>
+#include <imgui/imgui_impl_sdl2.h>
+#include <imgui/imgui_impl_opengl3.h>
+#include <SDL.h>
+#include <SDL_opengl.h>
+#include <SDL_opengl_glext.h>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/glm.hpp>
+#include <glm/gtx/quaternion.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <iostream>
+#include <STB/stb_image.h>
+#include <assert.h>
+#include <stdexcept>
+#include <unordered_map>
+#include <cstdint>
+#include <vector>
+#include <chrono>

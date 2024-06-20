@@ -1,6 +1,6 @@
 #pragma once
 
-#include <myHelper/cPrimitive.h>
+#include "cPrimitive.h"
 #include <vector>
 #include "shader_s.h"
 #define GLM_ENABLE_EXPERIMENTAL

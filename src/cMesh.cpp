@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "cMesh.h"
 
 cMesh::cMesh(const std::vector<cPrimitive>& primitives)

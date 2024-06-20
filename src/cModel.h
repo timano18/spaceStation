@@ -17,8 +17,8 @@
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <myHelper/shader_s.h>
-#include <myHelper/cMesh.h>
+#include "shader_s.h"
+#include "cMesh.h"
 
 struct DDSHeader;
 struct DDSHeaderDX10;

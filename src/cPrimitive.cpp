@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "cPrimitive.h"
 
 cPrimitive::cPrimitive(GLuint nVAO, cgltf_size nGlobalIndexCount, GLenum nIndex_type, Material nMaterial)

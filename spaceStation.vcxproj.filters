@@ -54,16 +54,22 @@
     <ClCompile Include="external\include\imgui\imgui_widgets.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
-    <ClCompile Include="external\include\myHelper\cModel.cpp">
+    <ClCompile Include="src\pch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="external\include\myHelper\cMesh.cpp">
+    <ClCompile Include="src\cMaterial.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="external\include\myHelper\cPrimitive.cpp">
+    <ClCompile Include="src\cMesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="external\include\myHelper\cMaterial.cpp">
+    <ClCompile Include="src\cModel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\cPrimitive.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\assetManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -124,23 +130,29 @@
     <ClInclude Include="external\include\imgui\imstb_truetype.h">
       <Filter>imgui</Filter>
     </ClInclude>
-    <ClInclude Include="external\include\myHelper\camera.h">
-      <Filter>myHelper</Filter>
+    <ClInclude Include="src\pch.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="external\include\myHelper\cMaterial.h">
-      <Filter>myHelper</Filter>
+    <ClInclude Include="src\camera.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="external\include\myHelper\cMesh.h">
-      <Filter>myHelper</Filter>
+    <ClInclude Include="src\cMaterial.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="external\include\myHelper\cModel.h">
-      <Filter>myHelper</Filter>
+    <ClInclude Include="src\cMesh.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="external\include\myHelper\cPrimitive.h">
-      <Filter>myHelper</Filter>
+    <ClInclude Include="src\cModel.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="external\include\myHelper\shader_s.h">
-      <Filter>myHelper</Filter>
+    <ClInclude Include="src\cPrimitive.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\assetManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\cosmic.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

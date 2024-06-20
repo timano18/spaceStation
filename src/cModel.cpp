@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "cModel.h"
 
 #define CGLTF_IMPLEMENTATION
@@ -254,21 +255,25 @@ Material cModel::createMaterial(cgltf_primitive* primitive)
     Material newMaterial = Material();
     glm::vec4 color(1.0f);
 
-    if (primitive->material) {
+    if (primitive->material) 
+    {
         cgltf_material* material = primitive->material;
         cgltf_pbr_metallic_roughness* pbr = &material->pbr_metallic_roughness;
         newMaterial.hasTexture = false;
-        if (primitive->material->normal_texture.texture) {
+        if (primitive->material->normal_texture.texture) 
+        {
             loadTexture(material->normal_texture.texture, newMaterial.normalTextureID, normalTextureCache, normalTextureLoadCount);
         }
 
-        if (pbr) {
+        if (pbr) 
+        {
             color = glm::vec4(pbr->base_color_factor[0], pbr->base_color_factor[1],
                 pbr->base_color_factor[2], pbr->base_color_factor[3]);
             newMaterial.baseColor = color;
         }
 
-        if (pbr->base_color_texture.texture) {
+        if (pbr->base_color_texture.texture) 
+        {
             newMaterial.hasTexture = true;
             loadTexture(pbr->base_color_texture.texture, newMaterial.colorTextureID, colorTextureCache, textureLoadCount);
         }
@@ -283,22 +288,26 @@ void cModel::loadModel(const char* path)
     cgltf_data* data = nullptr;
     cgltf_result result = cgltf_parse_file(&options, path, &data);
 
-    if (result != cgltf_result_success) {
+    if (result != cgltf_result_success) 
+    {
         std::cerr << "Failed to parse GLTF file: " << path << std::endl;
         return;
     }
 
     // Load buffers
     result = cgltf_load_buffers(&options, data, path);
-    if (result != cgltf_result_success) {
+    if (result != cgltf_result_success) 
+    {
         std::cerr << "Failed to load buffers for GLTF file: " << path << std::endl;
         cgltf_free(data);
         return;
     }
 
     // Process Nodes
-    for (cgltf_size i = 0; i < data->nodes_count; ++i) {
-        if (!data->nodes[i].parent) { // Process root nodes
+    for (cgltf_size i = 0; i < data->nodes_count; ++i) 
+    {
+        if (!data->nodes[i].parent) 
+        { // Process root nodes
             processNode(&data->nodes[i]);
         }
     }
@@ -309,31 +318,37 @@ void cModel::loadModel(const char* path)
 
 void cModel::processNode(cgltf_node* node, const glm::mat4& parentTransform)
 {
-    if (!node) {
+    if (!node) 
+    {
         std::cerr << "Invalid node pointer" << std::endl;
         return;
     }
 
     glm::mat4 nodeTransform = parentTransform;
 
-    if (node->has_matrix) {
+    if (node->has_matrix) 
+    {
         glm::mat4 matrix;
         memcpy(glm::value_ptr(matrix), node->matrix, sizeof(node->matrix));
         nodeTransform = parentTransform * matrix;
     }
-    else {
+    else 
+    {
         // Default translation, rotation, and scale
         glm::vec3 translation(0.0f), scale(1.0f);
         glm::quat rotation(1.0f, 0.0f, 0.0f, 0.0f);
 
         // Apply node transformations if present
-        if (node->has_translation) {
+        if (node->has_translation) 
+        {
             translation = glm::make_vec3(node->translation);
         }
-        if (node->has_rotation) {
+        if (node->has_rotation) 
+        {
             rotation = glm::make_quat(node->rotation);
         }
-        if (node->has_scale) {
+        if (node->has_scale) 
+        {
             scale = glm::make_vec3(node->scale);
         }
 
@@ -346,20 +361,24 @@ void cModel::processNode(cgltf_node* node, const glm::mat4& parentTransform)
     }
 
     // Process the mesh attached to the node if it exists
-    if (node->mesh) {
+    if (node->mesh) 
+    {
         meshes.push_back(processMesh(node->mesh, nodeTransform));
     }
 
     // Process children nodes recursively
-    for (cgltf_size i = 0; i < node->children_count; ++i) {
+    for (cgltf_size i = 0; i < node->children_count; ++i) 
+    {
         processNode(node->children[i], nodeTransform);
     }
 }
 
 void cModel::extractAttributes(cgltf_primitive* primitive, cgltf_accessor*& positions, cgltf_accessor*& normals, cgltf_accessor*& texCoords, cgltf_accessor*& tangents)
 {
-    for (int i = 0; i < primitive->attributes_count; i++) {
-        switch (primitive->attributes[i].type) {
+    for (int i = 0; i < primitive->attributes_count; i++) 
+    {
+        switch (primitive->attributes[i].type) 
+        {
         case cgltf_attribute_type_position:
             positions = primitive->attributes[i].data;
             break;
@@ -380,7 +399,8 @@ void cModel::extractAttributes(cgltf_primitive* primitive, cgltf_accessor*& posi
 
 float* cModel::getBufferData(cgltf_accessor* accessor)
 {
-    if (!accessor || !accessor->buffer_view || !accessor->buffer_view->buffer) {
+    if (!accessor || !accessor->buffer_view || !accessor->buffer_view->buffer) 
+    {
         std::cerr << "Invalid accessor or buffer view" << std::endl;
         return nullptr;
     }
@@ -392,7 +412,8 @@ cMesh cModel::processMesh(cgltf_mesh* mesh, glm::mat4 transform)
     std::vector<cPrimitive> primitives;
     GLenum index_type = GL_UNSIGNED_SHORT;
 
-    for (cgltf_size p = 0; p < mesh->primitives_count; ++p) {
+    for (cgltf_size p = 0; p < mesh->primitives_count; ++p) 
+    {
         cgltf_primitive* primitive = &mesh->primitives[p];
 
         cgltf_accessor* positions = nullptr;
@@ -402,9 +423,13 @@ cMesh cModel::processMesh(cgltf_mesh* mesh, glm::mat4 transform)
 
         extractAttributes(primitive, positions, v_normals, tex_coords, tangents);
 
-        if (primitive->indices) {
+ 
 
-            switch (primitive->indices->component_type) {
+        if (primitive->indices) 
+        {
+
+            switch (primitive->indices->component_type) 
+            {
             case cgltf_component_type_r_8u:
                 index_type = GL_UNSIGNED_BYTE;
                 break;
@@ -425,7 +450,8 @@ cMesh cModel::processMesh(cgltf_mesh* mesh, glm::mat4 transform)
         float* texData = getBufferData(tex_coords);
         float* tangData = getBufferData(tangents);
 
-        if (!vertices || !normData) {
+        if (!vertices || !normData) 
+        {
             std::cerr << "Error accessing buffer data for positions or normals" << std::endl;
             continue;
         }
@@ -436,7 +462,8 @@ cMesh cModel::processMesh(cgltf_mesh* mesh, glm::mat4 transform)
         std::vector<float> interleavedData;
         interleavedData.reserve(positions->count * 11);
 
-        for (size_t i = 0; i < positions->count; ++i) {
+        for (size_t i = 0; i < positions->count; ++i) 
+        {
             interleavedData.insert(interleavedData.end(), {
                 vertices[i * 3], vertices[i * 3 + 1], vertices[i * 3 + 2],
                 normData[i * 3], normData[i * 3 + 1], normData[i * 3 + 2],
@@ -450,11 +477,13 @@ cMesh cModel::processMesh(cgltf_mesh* mesh, glm::mat4 transform)
 
         // Material
         Material newMaterial;
-        try {
+        try 
+        {
             newMaterial = createMaterial(primitive);
             // std::cout << "Texture loaded successfully. Texture ID: " << newMaterial.textureID << std::endl;
         }
-        catch (const std::exception& e) {
+        catch (const std::exception& e) 
+        {
             std::cerr << "Error: " << e.what() << "on primitive: " << p << std::endl;
         }
 
@@ -486,9 +515,13 @@ cMesh cModel::processMesh(cgltf_mesh* mesh, glm::mat4 transform)
         glGenBuffers(1, &EBO);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
         if (index_type == GL_UNSIGNED_INT)
+        {
             glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices->count * sizeof(unsigned int), getBufferData(primitive->indices), GL_STATIC_DRAW);
+        }
         else
+        {
             glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices->count * sizeof(unsigned short), getBufferData(primitive->indices), GL_STATIC_DRAW);
+        }
 
         // Unbind VAO to avoid accidentally modifying it
         glBindVertexArray(0);

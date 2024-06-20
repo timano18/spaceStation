@@ -1,4 +1,5 @@
 #pragma once
+#include "pch.h"
 #include "cMaterial.h"
 #include <glad/glad.h>
 #include <cgltf/cgltf.h>
