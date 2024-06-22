@@ -1,5 +1,7 @@
 #include "pch.h"
 #include "assetManager.h"
+#include <thread>
+#include <format>
 
 std::unordered_map<std::string, fs::path> findModelFiles(const char* dir)
 {
@@ -35,4 +37,26 @@ std::unordered_map<std::string, fs::path> findModelFiles(const char* dir)
 	}
 	return gltf_files;
 
+}
+
+void watchFile(const char* path)
+{
+	auto lastWriteTime = getWriteTime(path);
+
+
+	while (true) 
+	{
+		auto currentWriteTime = getWriteTime(path);
+		if (lastWriteTime != currentWriteTime)
+		{
+			lastWriteTime = currentWriteTime;
+			std::cout << "File changed!" << std::endl;
+		}
+		std::this_thread::sleep_for(std::chrono::milliseconds(500));
+	}
+}
+
+std::filesystem::file_time_type getWriteTime(const char* path)
+{
+	return std::filesystem::last_write_time(path);
 }

@@ -8,7 +8,8 @@ cMesh::cMesh(const std::vector<cPrimitive>& primitives)
 
 void cMesh::draw(Shader& shader)
 {
-    for (auto& primitive : primitives) {
+    for (auto& primitive : primitives) 
+    {
         primitive.draw(shader);
     }
 }

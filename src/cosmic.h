@@ -49,16 +49,11 @@ struct Timer
     std::string m_title = "Timer";
     Timer()
     {
-        start = std::chrono::high_resolution_clock::now();
+        startTimer();
     }
     ~Timer()
     {
-        end = std::chrono::high_resolution_clock::now();
-        duration = end - start;
-
-        float ms = duration.count() * 1000.0f;
-
-        std::cout << m_title << " took: " << ms << "ms" << std::endl;
+        stopTimer();
     }
     void setTitle(const char* title)
     {
@@ -67,6 +62,15 @@ struct Timer
     void startTimer()
     {
         start = std::chrono::high_resolution_clock::now();
+    }
+    void stopTimer()
+    {
+        end = std::chrono::high_resolution_clock::now();
+        duration = end - start;
+
+        float ms = duration.count() * 1000.0f;
+
+        std::cout << m_title << " took: " << ms << "ms" << std::endl;
     }
 };
 
@@ -307,7 +311,13 @@ int run()
         std::cout << "Key not found" << std::endl;
     }
     std::string filePath = file.generic_string();
+
+    Timer timer;
+    timer.setTitle("Load GLTF file");
+    timer.startTimer();
     cModel myModel(filePath.c_str());
+    timer.stopTimer();
+
 
 
 
@@ -425,6 +435,7 @@ int run()
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         // Swap buffers
         SDL_GL_SwapWindow(window);
+
     }
 
 

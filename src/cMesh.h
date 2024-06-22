@@ -9,7 +9,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-class cMesh {
+class cMesh 
+{
 public:
     std::vector<cPrimitive> primitives;
     glm::mat4 transform;

@@ -4,7 +4,36 @@
 #define CGLTF_IMPLEMENTATION
 #include <cgltf/cgltf.h>
 
-struct DDSHeader {
+struct Timer
+{
+    std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
+    std::chrono::duration<float> duration;
+    std::string m_title = "Timer";
+    Timer()
+    {
+        startTimer();
+    }
+    void setTitle(const char* title)
+    {
+        m_title = title;
+    }
+    void startTimer()
+    {
+        start = std::chrono::high_resolution_clock::now();
+    }
+    void stopTimer()
+    {
+        end = std::chrono::high_resolution_clock::now();
+        duration = end - start;
+
+        float ms = duration.count() * 1000.0f;
+
+        std::cout << m_title << " took: " << ms << "ms" << std::endl;
+    }
+};
+
+struct DDSHeader 
+{
     uint32_t size;
     uint32_t flags;
     uint32_t height;
@@ -14,7 +43,8 @@ struct DDSHeader {
     uint32_t mipMapCount;
     uint32_t reserved1[11];
 
-    struct {
+    struct 
+    {
         uint32_t size;
         uint32_t flags;
         uint32_t fourCC;
@@ -25,7 +55,8 @@ struct DDSHeader {
         uint32_t ABitMask;
     } pixelFormat;
 
-    struct {
+    struct 
+    {
         uint32_t caps1;
         uint32_t caps2;
         uint32_t caps3;
@@ -35,7 +66,8 @@ struct DDSHeader {
     uint32_t reserved2;
 };
 
-struct DDSHeaderDX10 {
+struct DDSHeaderDX10 
+{
     uint32_t dxgiFormat;
     uint32_t resourceDimension;
     uint32_t miscFlag;
@@ -43,7 +75,8 @@ struct DDSHeaderDX10 {
     uint32_t miscFlags2;
 };
 
-struct MipmapData {
+struct MipmapData 
+{
     uint32_t width;
     uint32_t height;
     std::vector<uint8_t> data;
@@ -53,12 +86,16 @@ cModel::cModel(const char* path)
 {
     std::string directoryPath = path;
     directory = directoryPath.substr(0, directoryPath.find_last_of("/") + 1);
+    Timer timer;
+    timer.setTitle("Load model took");
     loadModel(path);
+    timer.stopTimer();
 }
 
 void cModel::Draw(Shader& shader)
 {
-    for (unsigned int i = 0; i < meshes.size(); i++) {
+    for (unsigned int i = 0; i < meshes.size(); i++) 
+    {
         shader.setMat4("model", meshes[i].transform);
         meshes[i].draw(shader);
     }
@@ -67,27 +104,32 @@ void cModel::Draw(Shader& shader)
 std::vector<MipmapData> cModel::readDDS(const std::string& filePath, DDSHeader& header, DDSHeaderDX10& headerDX10)
 {
     std::ifstream file(filePath, std::ios::binary);
-    if (!file.is_open()) {
+    if (!file.is_open()) 
+    {
         throw std::runtime_error("Failed to open DDS file");
     }
 
     // Read magic number
     char magic[4];
     file.read(magic, sizeof(magic));
-    if (file.gcount() != sizeof(magic) || std::strncmp(magic, "DDS ", sizeof(magic)) != 0) {
+    if (file.gcount() != sizeof(magic) || std::strncmp(magic, "DDS ", sizeof(magic)) != 0) 
+    {
         throw std::runtime_error("Not a valid DDS file: " + filePath);
     }
 
     // Read header
     file.read(reinterpret_cast<char*>(&header), sizeof(DDSHeader));
-    if (file.gcount() != sizeof(DDSHeader)) {
+    if (file.gcount() != sizeof(DDSHeader)) 
+    {
         throw std::runtime_error("Failed to read DDS header: " + filePath);
     }
 
     // Check for DX10 header and read it if present
-    if (header.pixelFormat.fourCC == 0x30315844) {
+    if (header.pixelFormat.fourCC == 0x30315844) 
+    {
         file.read(reinterpret_cast<char*>(&headerDX10), sizeof(DDSHeaderDX10));
-        if (file.gcount() != sizeof(DDSHeaderDX10)) {
+        if (file.gcount() != sizeof(DDSHeaderDX10)) 
+        {
             throw std::runtime_error("Failed to read DX10 header: " + filePath);
         }
     }
@@ -96,12 +138,14 @@ std::vector<MipmapData> cModel::readDDS(const std::string& filePath, DDSHeader& 
     uint32_t width = header.width;
     uint32_t height = header.height;
 
-    for (uint32_t level = 0; level < header.mipMapCount; ++level) {
+    for (uint32_t level = 0; level < header.mipMapCount; ++level) 
+    {
         size_t dataSize = ((width + 3) / 4) * ((height + 3) / 4) * 16; // BC7 block size is 16 bytes
         mipmaps.push_back({ width, height, std::vector<uint8_t>(dataSize) });
 
         file.read(reinterpret_cast<char*>(mipmaps[level].data.data()), dataSize);
-        if (file.gcount() != dataSize) {
+        if (file.gcount() != dataSize) 
+        {
             throw std::runtime_error("Failed to read mipmap level data: " + filePath);
         }
 
@@ -115,7 +159,8 @@ std::vector<MipmapData> cModel::readDDS(const std::string& filePath, DDSHeader& 
 void cModel::checkGLError(const std::string& message)
 {
     GLenum err;
-    while ((err = glGetError()) != GL_NO_ERROR) {
+    while ((err = glGetError()) != GL_NO_ERROR) 
+    {
         std::cerr << "OpenGL error during " << message << ": " << err << std::endl;
     }
 }
@@ -147,13 +192,16 @@ GLuint cModel::loadDDSTexture(const std::string& path)
         format = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
         break;
     case FOURCC_DX10:
-        if (headerDX10.dxgiFormat == DXGI_FORMAT_BC7_UNORM) {
+        if (headerDX10.dxgiFormat == DXGI_FORMAT_BC7_UNORM) 
+        {
             format = GL_COMPRESSED_RGBA_BPTC_UNORM_ARB;
         }
-        else if (headerDX10.dxgiFormat == DXGI_FORMAT_BC7_UNORM_SRGB) {
+        else if (headerDX10.dxgiFormat == DXGI_FORMAT_BC7_UNORM_SRGB) 
+        {
             format = GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM_ARB;
         }
-        else {
+        else 
+        {
             throw std::runtime_error("Unsupported DXGI format in DX10 header");
         }
         break;
@@ -165,7 +213,8 @@ GLuint cModel::loadDDSTexture(const std::string& path)
     glGenTextures(1, &textureID);
     glBindTexture(GL_TEXTURE_2D, textureID);
 
-    for (size_t level = 0; level < data.size(); ++level) {
+    for (size_t level = 0; level < data.size(); ++level) 
+    {
         const auto& mipmap = data[level];
         glCompressedTexImage2D(GL_TEXTURE_2D, level, format, mipmap.width, mipmap.height, 0, mipmap.data.size(), mipmap.data.data());
         checkGLError("texture upload at mipmap level " + std::to_string(level));
@@ -186,7 +235,8 @@ GLuint cModel::loadStandardTexture(const std::string& path)
     int width, height, nrChannels;
     unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrChannels, 0);
 
-    if (!data) {
+    if (!data) 
+    {
         std::cerr << "Failed to load texture: " << path << std::endl;
         return 0; // Return 0 to indicate failure
     }
@@ -194,7 +244,8 @@ GLuint cModel::loadStandardTexture(const std::string& path)
     GLuint textureID;
     GLenum format = GL_RGB; // Default format
 
-    switch (nrChannels) {
+    switch (nrChannels) 
+    {
     case 1:
         format = GL_RED;
         break;
@@ -230,19 +281,24 @@ void cModel::loadTexture(cgltf_texture* texture, GLuint& textureID, std::unorder
 {
     cgltf_image* image = texture->image;
 
-    if (image && image->uri) {
+    if (image && image->uri) 
+    {
         std::string fullPath = directory + '/' + image->uri;
 
-        if (textureCache.find(image->uri) != textureCache.end()) {
+        if (textureCache.find(image->uri) != textureCache.end()) 
+        {
             textureID = textureCache[image->uri];
         }
-        else {
+        else 
+        {
             textureLoadCount++;
             std::string fileExtension = fullPath.substr(fullPath.find_last_of(".") + 1);
-            if (fileExtension == "dds") {
+            if (fileExtension == "dds") 
+            {
                 textureID = loadDDSTexture(fullPath);
             }
-            else {
+            else 
+            {
                 textureID = loadStandardTexture(fullPath);
             }
             textureCache[image->uri] = textureID;
@@ -477,6 +533,7 @@ cMesh cModel::processMesh(cgltf_mesh* mesh, glm::mat4 transform)
 
         // Material
         Material newMaterial;
+
         try 
         {
             newMaterial = createMaterial(primitive);
@@ -486,7 +543,6 @@ cMesh cModel::processMesh(cgltf_mesh* mesh, glm::mat4 transform)
         {
             std::cerr << "Error: " << e.what() << "on primitive: " << p << std::endl;
         }
-
         // Create and bind VAO, VBO, EBO
         GLuint VAO, EBO, VBO;
         glGenVertexArrays(1, &VAO);

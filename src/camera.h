@@ -5,7 +5,8 @@
 #include <vector>
 
 // Define possible options for camera movement
-enum Camera_Movement {
+enum Camera_Movement 
+{
     FORWARD,
     BACKWARD,
     LEFT,

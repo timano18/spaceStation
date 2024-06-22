@@ -5,7 +5,8 @@
 #include <cgltf/cgltf.h>
 #include "shader_s.h"
 
-class cPrimitive {
+class cPrimitive 
+{
 public:
     GLuint VAO, VBO, EBO;
     cgltf_size globalIndexCount;

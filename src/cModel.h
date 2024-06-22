@@ -24,7 +24,8 @@ struct DDSHeader;
 struct DDSHeaderDX10;
 struct MipmapData;
 
-class cModel {
+class cModel 
+{
 public:
     std::vector<cMesh> meshes;
     std::string directory;

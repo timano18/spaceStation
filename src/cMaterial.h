@@ -2,7 +2,8 @@
 #include <glm/glm.hpp>
 #include <glad/glad.h>
 
-class Material {
+class Material
+{
 public:
     glm::vec4 baseColor;
     GLuint colorTextureID;
