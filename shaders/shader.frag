@@ -4,6 +4,8 @@
 out vec4 FragColor;
 
 struct Material {
+    vec3 baseColor;
+    bool hasTexture;
     sampler2D diffuse;
     sampler2D normal;
     sampler2D specular;    
@@ -99,7 +101,15 @@ void main()
 {
     vec3 viewDir = normalize(TangentViewPos - TangentFragPos);
 
-    vec4 textureColour = texture(material.diffuse, TexCoords);
+    vec4 textureColour;
+    if(material.hasTexture)
+    {
+        textureColour = texture(material.diffuse, TexCoords);
+    }
+    else 
+    {
+        textureColour = vec4(material.baseColor, 1.0);
+    }
     if (textureColour.a < 0.1)
     {
         discard;
@@ -152,8 +162,7 @@ void main()
     float depth = LinearizeDepth(gl_FragCoord.z) / far;
 
    
-    FragColor = vec4(result, 1.0);
-
+    FragColor = vec4(textureColour.rgb, 1.0);
 }
 
 
