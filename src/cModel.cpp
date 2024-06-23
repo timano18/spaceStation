@@ -73,33 +73,30 @@ void cModel::checkGLError(const std::string& message)
 }
 
 
-void cModel::loadTexture(cgltf_texture* texture, Texture& textureObject, std::unordered_map<std::string, Texture>& textureCache, int& textureLoadCount)
+void cModel::loadTexture(cgltf_texture* texture, Texture& textureObject)
 {
     cgltf_image* image = texture->image;
     if (image && image->uri)
     {
         std::string fullPath = directory + '/' + image->uri;
 
-        if (textureCache.find(image->uri) != textureCache.end())
+        if (m_TextureCache.find(image->uri) != m_TextureCache.end())
         {
-            textureObject = textureCache[image->uri];
+            textureObject = m_TextureCache[image->uri];
         }
         else
         {
             textureLoadCount++;
             std::string fileExtension = fullPath.substr(fullPath.find_last_of(".") + 1);
             if (fileExtension == "dds")
-            {
-               // textureID = loadDDSTexture(fullPath);
-                
+            {                
                 textureObject = Texture(fullPath, true);
             }
             else
             {
-                //textureObject = loadStandardTexture(fullPath);
                 textureObject = Texture(fullPath, false);
             }
-            textureCache[image->uri] = textureObject;
+            m_TextureCache[image->uri] = textureObject;
         }
     }
     checkGLError("Error");
@@ -117,21 +114,18 @@ Material cModel::createMaterial(cgltf_primitive* primitive)
         newMaterial.hasColorTexture = false;
         if (primitive->material->normal_texture.texture)
         {
-            loadTexture(material->normal_texture.texture, newMaterial.normalTexture, normalTextureCache, normalTextureLoadCount);
-
+            loadTexture(material->normal_texture.texture, newMaterial.normalTexture);
         }
-
         if (pbr)
         {
             color = glm::vec4(pbr->base_color_factor[0], pbr->base_color_factor[1],
                 pbr->base_color_factor[2], pbr->base_color_factor[3]);
             newMaterial.baseColor = color;
         }
-
         if (pbr->base_color_texture.texture)
         {
             newMaterial.hasColorTexture = true;
-            loadTexture(pbr->base_color_texture.texture, newMaterial.colorTexture, colorTextureCache, textureLoadCount);
+            loadTexture(pbr->base_color_texture.texture, newMaterial.colorTexture);
         }
     }
     checkGLError("Error");
