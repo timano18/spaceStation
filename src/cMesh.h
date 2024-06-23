@@ -2,7 +2,7 @@
 
 #include "cPrimitive.h"
 #include <vector>
-#include "shader_s.h"
+#include "shader.h"
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
 #include <glm/gtx/quaternion.hpp>

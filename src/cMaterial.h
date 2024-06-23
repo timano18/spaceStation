@@ -4,7 +4,6 @@
 #include "texture.h"
 
 
-
 class Material
 {
 public:
@@ -13,11 +12,13 @@ public:
     GLuint normalTextureID;
     GLuint aoTextureID;
     
-
+    Texture colorTexture;
+    Texture normalTexture;
 
     bool hasColorTexture;
 
     Material();
     Material(glm::vec4 nBaseColor);
-    void uploadTexture();
+    GLuint createOpenGLTexture(const Texture& texture);
+    void createAllTextures();
 };

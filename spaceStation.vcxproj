@@ -241,6 +241,7 @@
     <ClInclude Include="src\cModel.h" />
     <ClInclude Include="src\cosmic.h" />
     <ClInclude Include="src\cPrimitive.h" />
+    <ClInclude Include="src\MipmapData.h" />
     <ClInclude Include="src\pch.h" />
     <ClInclude Include="src\assetManager.h" />
     <ClInclude Include="src\texture.h" />

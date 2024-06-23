@@ -18,11 +18,15 @@ void cPrimitive::draw(Shader& shader)
 {
     shader.use();
     // shader.setVec3("objectColor", material.baseColor.x, material.baseColor.y, material.baseColor.z);
+
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, m_material.colorTextureID);
+
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, m_material.normalTextureID);
-    shader.setInt("material.diffuse", 0);
+
+
+    shader.setInt("material.diffuse", 1);
     shader.setInt("material.normal", 1);
     shader.setVec3("material.baseColor", m_material.baseColor);
     shader.setBool("material.hasTexture", m_material.hasColorTexture);
@@ -39,7 +43,12 @@ void cPrimitive::draw(Shader& shader)
 
 void cPrimitive::uploadToGPU()
 {
-    //m_material.uploadTexture();
+    m_material.createAllTextures();
+    GLenum err;
+    while ((err = glGetError()) != GL_NO_ERROR)
+    {
+        std::cerr << "OpenGL error during " << "message" << ": " << err << std::endl;
+    }
     GLuint EBO, VBO;
     glGenVertexArrays(1, &this->m_VAO);
     glBindVertexArray(this->m_VAO);
