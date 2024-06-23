@@ -104,7 +104,7 @@ void main()
     vec4 textureColour;
     if(material.hasTexture)
     {
-        textureColour = texture(material.diffuse, TexCoords);
+        textureColour = texture(material.specular, TexCoords);
     }
     else 
     {
@@ -146,20 +146,22 @@ void main()
         result = CalcDirLight(dirLight, normal, viewDir);
     // phase 2: Point lights
     
+    /*
     for(int i = 0; i < NR_POINT_LIGHTS; i++)
     {
         if (pointLights[i].enabled)
             result += CalcPointLight(pointLights[i], normal, TangentFragPos, viewDir);   
     }
-         
+    */  
+    /*
     // phase 3: Spot light
     if(spotLight.enabled)
     {
         result += CalcSpotLight(spotLight, normal, TangentFragPos, viewDir);    
     }
-
+    */
     
-    float depth = LinearizeDepth(gl_FragCoord.z) / far;
+    //loat depth = LinearizeDepth(gl_FragCoord.z) / far;
 
    
     FragColor = vec4(textureColour.rgb, 1.0);
@@ -179,7 +181,7 @@ vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir)
     vec3 ambient  = light.ambient  * vec3(texture(material.diffuse, TexCoords));
     vec3 diffuse  = light.diffuse  * diff * vec3(texture(material.diffuse, TexCoords));
     vec3 specular = light.specular * spec * vec3(texture(material.specular, TexCoords));
-    return (ambient + diffuse + specular);
+    return (specular);
 }  
 
 vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir)

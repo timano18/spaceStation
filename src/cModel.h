@@ -17,8 +17,9 @@
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include "shader_s.h"
+#include "shader.h"
 #include "cMesh.h"
+#include <future>
 
 struct DDSHeader;
 struct DDSHeaderDX10;
@@ -30,9 +31,10 @@ class cModel
 public:
     std::vector<cMesh> meshes;
     std::string directory;
-    std::unordered_map<std::string, GLuint> colorTextureCache;
-    std::unordered_map<std::string, GLuint> normalTextureCache;
-    std::unordered_map<std::string, GLuint> aoTextureCache;
+    std::unordered_map<std::string, Texture> colorTextureCache;
+    std::unordered_map<std::string, Texture> normalTextureCache;
+    std::unordered_map<std::string, Texture> aoTextureCache;
+    std::vector<std::future<void>> m_Futures;
 
     int textureLoadCount = 0;
     int normalTextureLoadCount = 0;
@@ -42,15 +44,17 @@ public:
     std::vector<MipmapData> readDDS(const std::string& filePath, DDSHeader& header, DDSHeaderDX10& headerDX10);
     void checkGLError(const std::string& message);
     GLuint loadDDSTexture(const std::string& path);
-    GLuint loadStandardTexture(const std::string& path);
-    void loadTexture(cgltf_texture* texture, GLuint& textureID, std::unordered_map<std::string, GLuint>& textureCache, int& textureLoadCount);
+    Texture loadStandardTexture(const std::string& path);
+    void loadTexture(cgltf_texture* texture, Texture& textureObject, std::unordered_map<std::string, Texture>& textureCache, int& textureLoadCount);
     Material createMaterial(cgltf_primitive* primitive);
     void loadModel(const char* path);
     void processNode(cgltf_node* node, const glm::mat4& parentTransform = glm::mat4(1.0f));
     void extractAttributes(cgltf_primitive* primitive, cgltf_accessor*& positions, cgltf_accessor*& normals, cgltf_accessor*& texCoords, cgltf_accessor*& tangents);
     float* getBufferData(cgltf_accessor* accessor);
     cMesh processMesh(cgltf_mesh* mesh, glm::mat4 transform);
+    cPrimitive processPrimitive(cgltf_primitive* primitive, GLenum& index_type);
     void uploadToGpu();
+
 };
 
 

@@ -3,7 +3,7 @@
 
 
 
-#include "shader_s.h"
+#include "shader.h"
 #include "camera.h"
 #include "cModel.h"
 #include "assetManager.h"
@@ -50,10 +50,6 @@ struct Timer
     Timer()
     {
         startTimer();
-    }
-    ~Timer()
-    {
-        stopTimer();
     }
     void setTitle(const char* title)
     {
@@ -301,7 +297,7 @@ int run()
         files = findModelFiles("../spaceStationProjectDirectory");
     }
     fs::path file;
-    auto it = files.find("Sponza.gltf");
+    auto it = files.find("SponzaDDS.gltf");
     if (it != files.end()) 
     {
         file = it->second;  // Access the value using iterator
@@ -311,7 +307,6 @@ int run()
         std::cout << "Key not found" << std::endl;
     }
     std::string filePath = file.generic_string();
-
     Timer timer;
     timer.setTitle("Load GLTF file");
     timer.startTimer();

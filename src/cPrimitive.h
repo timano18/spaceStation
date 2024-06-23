@@ -3,7 +3,7 @@
 #include "cMaterial.h"
 #include <glad/glad.h>
 #include <cgltf/cgltf.h>
-#include "shader_s.h"
+#include "shader.h"
 
 class cPrimitive 
 {
