@@ -8,12 +8,18 @@
 class cPrimitive 
 {
 public:
-    GLuint VAO, VBO, EBO;
-    cgltf_size globalIndexCount;
-    GLenum index_type;
-    Material material;
+    //GLuint VAO, VBO, EBO;
+    std::vector<float> m_interleavedData;
+    std::vector<unsigned int> m_indices;
+  
+    GLenum m_indexType;
+    Material m_material;
+    GLuint m_VAO;
 
-    cPrimitive(GLuint nVAO, cgltf_size nGlobalIndexCount, GLenum nIndex_type, Material nMaterial);
+
+    cPrimitive(std::vector<float> interleavedData, std::vector<unsigned int> indices, GLenum nIndex_type, Material nMaterial);
 
     void draw(Shader& shader);
+
+    void uploadToGPU();
 };

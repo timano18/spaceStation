@@ -243,6 +243,7 @@
     <ClInclude Include="src\cPrimitive.h" />
     <ClInclude Include="src\pch.h" />
     <ClInclude Include="src\assetManager.h" />
+    <ClInclude Include="src\texture.h" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="external\include\imgui\misc\debuggers\imgui.natvis" />

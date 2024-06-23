@@ -318,6 +318,10 @@ int run()
     cModel myModel(filePath.c_str());
     timer.stopTimer();
 
+    timer.setTitle("Upload data to gpu");
+    timer.startTimer();
+    myModel.uploadToGpu();
+    timer.stopTimer();
 
 
 

@@ -18,6 +18,7 @@ public:
     cMesh(const std::vector<cPrimitive>& primitives);
 
     void draw(Shader& shader);
+    void uploadToGpu();
 };
 
 

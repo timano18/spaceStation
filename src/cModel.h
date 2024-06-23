@@ -24,6 +24,7 @@ struct DDSHeader;
 struct DDSHeaderDX10;
 struct MipmapData;
 
+
 class cModel 
 {
 public:
@@ -49,4 +50,7 @@ public:
     void extractAttributes(cgltf_primitive* primitive, cgltf_accessor*& positions, cgltf_accessor*& normals, cgltf_accessor*& texCoords, cgltf_accessor*& tangents);
     float* getBufferData(cgltf_accessor* accessor);
     cMesh processMesh(cgltf_mesh* mesh, glm::mat4 transform);
+    void uploadToGpu();
 };
+
+

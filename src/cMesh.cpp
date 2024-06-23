@@ -13,3 +13,12 @@ void cMesh::draw(Shader& shader)
         primitive.draw(shader);
     }
 }
+
+void cMesh::uploadToGpu()
+{
+    for (auto& primitive : primitives)
+    {
+        primitive.uploadToGPU();
+
+    }
+}

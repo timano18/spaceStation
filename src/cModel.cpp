@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "cModel.h"
+#include "texture.h"
 
 #define CGLTF_IMPLEMENTATION
 #include <cgltf/cgltf.h>
@@ -75,7 +76,7 @@ struct DDSHeaderDX10
     uint32_t miscFlags2;
 };
 
-struct MipmapData 
+struct MipmapData
 {
     uint32_t width;
     uint32_t height;
@@ -192,15 +193,15 @@ GLuint cModel::loadDDSTexture(const std::string& path)
         format = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
         break;
     case FOURCC_DX10:
-        if (headerDX10.dxgiFormat == DXGI_FORMAT_BC7_UNORM) 
+        if (headerDX10.dxgiFormat == DXGI_FORMAT_BC7_UNORM)
         {
             format = GL_COMPRESSED_RGBA_BPTC_UNORM_ARB;
         }
-        else if (headerDX10.dxgiFormat == DXGI_FORMAT_BC7_UNORM_SRGB) 
+        else if (headerDX10.dxgiFormat == DXGI_FORMAT_BC7_UNORM_SRGB)
         {
             format = GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM_ARB;
         }
-        else 
+        else
         {
             throw std::runtime_error("Unsupported DXGI format in DX10 header");
         }
@@ -213,7 +214,7 @@ GLuint cModel::loadDDSTexture(const std::string& path)
     glGenTextures(1, &textureID);
     glBindTexture(GL_TEXTURE_2D, textureID);
 
-    for (size_t level = 0; level < data.size(); ++level) 
+    for (size_t level = 0; level < data.size(); ++level)
     {
         const auto& mipmap = data[level];
         glCompressedTexImage2D(GL_TEXTURE_2D, level, format, mipmap.width, mipmap.height, 0, mipmap.data.size(), mipmap.data.data());
@@ -235,7 +236,7 @@ GLuint cModel::loadStandardTexture(const std::string& path)
     int width, height, nrChannels;
     unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrChannels, 0);
 
-    if (!data) 
+    if (!data)
     {
         std::cerr << "Failed to load texture: " << path << std::endl;
         return 0; // Return 0 to indicate failure
@@ -244,7 +245,7 @@ GLuint cModel::loadStandardTexture(const std::string& path)
     GLuint textureID;
     GLenum format = GL_RGB; // Default format
 
-    switch (nrChannels) 
+    switch (nrChannels)
     {
     case 1:
         format = GL_RED;
@@ -281,23 +282,23 @@ void cModel::loadTexture(cgltf_texture* texture, GLuint& textureID, std::unorder
 {
     cgltf_image* image = texture->image;
 
-    if (image && image->uri) 
+    if (image && image->uri)
     {
         std::string fullPath = directory + '/' + image->uri;
 
-        if (textureCache.find(image->uri) != textureCache.end()) 
+        if (textureCache.find(image->uri) != textureCache.end())
         {
             textureID = textureCache[image->uri];
         }
-        else 
+        else
         {
             textureLoadCount++;
             std::string fileExtension = fullPath.substr(fullPath.find_last_of(".") + 1);
-            if (fileExtension == "dds") 
+            if (fileExtension == "dds")
             {
                 textureID = loadDDSTexture(fullPath);
             }
-            else 
+            else
             {
                 textureID = loadStandardTexture(fullPath);
             }
@@ -311,26 +312,26 @@ Material cModel::createMaterial(cgltf_primitive* primitive)
     Material newMaterial = Material();
     glm::vec4 color(1.0f);
 
-    if (primitive->material) 
+    if (primitive->material)
     {
         cgltf_material* material = primitive->material;
         cgltf_pbr_metallic_roughness* pbr = &material->pbr_metallic_roughness;
-        newMaterial.hasTexture = false;
-        if (primitive->material->normal_texture.texture) 
+        newMaterial.hasColorTexture = false;
+        if (primitive->material->normal_texture.texture)
         {
             loadTexture(material->normal_texture.texture, newMaterial.normalTextureID, normalTextureCache, normalTextureLoadCount);
         }
 
-        if (pbr) 
+        if (pbr)
         {
             color = glm::vec4(pbr->base_color_factor[0], pbr->base_color_factor[1],
                 pbr->base_color_factor[2], pbr->base_color_factor[3]);
             newMaterial.baseColor = color;
         }
 
-        if (pbr->base_color_texture.texture) 
+        if (pbr->base_color_texture.texture)
         {
-            newMaterial.hasTexture = true;
+            newMaterial.hasColorTexture = true;
             loadTexture(pbr->base_color_texture.texture, newMaterial.colorTextureID, colorTextureCache, textureLoadCount);
         }
     }
@@ -513,7 +514,7 @@ cMesh cModel::processMesh(cgltf_mesh* mesh, glm::mat4 transform)
         }
 
         // Assuming indices are present and required for rendering
-        cgltf_accessor* indices = primitive->indices;
+        //cgltf_accessor* indices = primitive->indices;
 
         std::vector<float> interleavedData;
         interleavedData.reserve(positions->count * 11);
@@ -531,6 +532,33 @@ cMesh cModel::processMesh(cgltf_mesh* mesh, glm::mat4 transform)
                 });
         }
 
+        
+        
+        float* indiceData = getBufferData(primitive->indices);
+       std::vector<unsigned int> indices;
+        if (primitive->indices)
+        {
+            indices.resize(primitive->indices->count);
+            void* bufferData = getBufferData(primitive->indices);
+            if (index_type == GL_UNSIGNED_INT)
+            {
+                std::copy_n(static_cast<unsigned int*>(bufferData), primitive->indices->count, indices.begin());
+            }
+            else if (index_type == GL_UNSIGNED_SHORT)
+            {
+                std::vector<unsigned short> shortIndices(primitive->indices->count);
+                std::copy_n(static_cast<unsigned short*>(bufferData), primitive->indices->count, shortIndices.begin());
+                indices.assign(shortIndices.begin(), shortIndices.end());
+            }
+            else if (index_type == GL_UNSIGNED_BYTE)
+            {
+                std::vector<unsigned char> byteIndices(primitive->indices->count);
+                std::copy_n(static_cast<unsigned char*>(bufferData), primitive->indices->count, byteIndices.begin());
+                indices.assign(byteIndices.begin(), byteIndices.end());
+            }
+        }
+
+
         // Material
         Material newMaterial;
 
@@ -543,7 +571,12 @@ cMesh cModel::processMesh(cgltf_mesh* mesh, glm::mat4 transform)
         {
             std::cerr << "Error: " << e.what() << "on primitive: " << p << std::endl;
         }
+
+
+        // Comment out opengl calls. TODO move
+        
         // Create and bind VAO, VBO, EBO
+        /*
         GLuint VAO, EBO, VBO;
         glGenVertexArrays(1, &VAO);
         glBindVertexArray(VAO);
@@ -572,23 +605,35 @@ cMesh cModel::processMesh(cgltf_mesh* mesh, glm::mat4 transform)
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
         if (index_type == GL_UNSIGNED_INT)
         {
-            glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices->count * sizeof(unsigned int), getBufferData(primitive->indices), GL_STATIC_DRAW);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, primitive->indices->count * sizeof(unsigned int), getBufferData(primitive->indices), GL_STATIC_DRAW);
         }
         else
         {
-            glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices->count * sizeof(unsigned short), getBufferData(primitive->indices), GL_STATIC_DRAW);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, primitive->indices->count * sizeof(unsigned short), getBufferData(primitive->indices), GL_STATIC_DRAW);
         }
 
         // Unbind VAO to avoid accidentally modifying it
         glBindVertexArray(0);
-
+        */
         // Add the new primitive to the primitives vector
-        primitives.push_back(cPrimitive(VAO, indices->count, index_type, newMaterial));
+        //primitives.push_back(cPrimitive(VAO, indices->count, index_type, newMaterial));
+        
+        primitives.push_back(cPrimitive(interleavedData, indices, index_type, newMaterial));
     }
+
+
 
     cMesh newMesh(primitives);
     newMesh.transform = transform;
     std::cout << "number of color textures loaded: " << textureLoadCount << std::endl;
     std::cout << "number of normal textures loaded: " << normalTextureLoadCount << std::endl;
     return newMesh;
+}
+
+void cModel::uploadToGpu()
+{
+    for (auto& mesh : meshes)
+    {
+        mesh.uploadToGpu();
+    }
 }
