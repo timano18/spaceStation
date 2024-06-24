@@ -9,6 +9,8 @@
 #include <thread>
 #include <future>
 #include <mutex>
+#include <draco/compression/decode.h>
+#include <draco/core/decoder_buffer.h>
 
 struct Timer
 {
@@ -294,6 +296,11 @@ cPrimitive cModel::processPrimitive(cgltf_primitive* primitive, GLenum& index_ty
     cgltf_accessor* v_normals = nullptr;
     cgltf_accessor* tex_coords = nullptr;
     cgltf_accessor* tangents = nullptr;
+
+    if (primitive->has_draco_mesh_compression)
+    {
+        std::cout << "Draco compression detected" << "\n";
+    }
   
 
     extractAttributes(primitive, positions, v_normals, tex_coords, tangents);
@@ -319,7 +326,7 @@ cPrimitive cModel::processPrimitive(cgltf_primitive* primitive, GLenum& index_ty
 
     float* vertices = getBufferData(positions);
     float* normData = getBufferData(v_normals);
-    float* texData = getBufferData(tex_coords);
+    float* texData  = getBufferData(tex_coords);
     float* tangData = getBufferData(tangents);
 
     if (!vertices || !normData)

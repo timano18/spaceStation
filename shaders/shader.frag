@@ -91,18 +91,14 @@ float far = 100.0;
 
 
 
-vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir);  
-vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir);  
-vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir);
-float LinearizeDepth(float depth);
+vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir, vec3 textureColour);  
+
 
 
 void main()
 {
-    //FragColor = texture(material.specular, TexCoords);
-    FragColor = vec4(Normal, 1.0);
-    return;
-    vec3 viewDir = normalize(TangentViewPos - TangentFragPos);
+
+    vec3 viewDir = normalize(viewPos - FragPos);
 
     vec4 textureColour;
     if(material.hasTexture)
@@ -117,7 +113,7 @@ void main()
     {
         discard;
     }
-
+    /*
     vec3 normalColor = texture(material.normal, TexCoords).rgb;
 
     vec3 N = normalize((normalColor * 2.0 - 1.0) * 10.0);
@@ -137,19 +133,20 @@ void main()
     {
         normal = normalize(N_world);
     }
-
+    */
+    vec3 norm = normalize(Normal);
     vec3 result = vec3(0.0f);
     // phase 1: Directional lighting
     if (dirLight.enabled)
-        result = CalcDirLight(dirLight, normal, viewDir);
+        result = CalcDirLight(dirLight, norm, viewDir, textureColour.rgb);
 
 
-    FragColor = vec4(textureColour.rgb, 1.0);
+    FragColor = vec4(result.rgb, 1.0);
 }
 
 
 
-vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir)
+vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir, vec3 textureColour)
 {
     vec3 lightDir = normalize(-light.direction);
     // diffuse shading
@@ -158,9 +155,9 @@ vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir)
     vec3 reflectDir = reflect(-lightDir, normal);
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
     // combine results
-    vec3 ambient  = light.ambient  * vec3(texture(material.diffuse, TexCoords));
-    vec3 diffuse  = light.diffuse  * diff * vec3(texture(material.diffuse, TexCoords));
+    vec3 ambient  = light.ambient  * textureColour;
+    vec3 diffuse  = light.diffuse  * diff * textureColour;
     vec3 specular = light.specular * spec * vec3(texture(material.specular, TexCoords));
-    return (specular);
+    return (ambient + diffuse);
 }  
 

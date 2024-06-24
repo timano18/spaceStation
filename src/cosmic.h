@@ -29,8 +29,8 @@ void gui();
 void processInput(float deltaTime);
 
 //Screen dimension constants
-const int SCR_WIDTH = 3840;
-const int SCR_HEIGHT = 2160;
+const int SCR_WIDTH = 2560;
+const int SCR_HEIGHT = 1440;
 
 bool stopRendering = false;
 bool showUI = false;
@@ -283,12 +283,13 @@ int run()
         std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+    /*
     std::unordered_map<std::string, fs::path> files;
     {
         Timer timer;
         timer.setTitle("Look up all files");
         timer.startTimer();
-        files = findModelFiles("../spaceStationProjectDirectory");
+        files = findModelFiles("../spaceStationProjectDirectory/TODO");
     }
     fs::path file;
     auto it = files.find("SponzaDDS.gltf");
@@ -301,10 +302,14 @@ int run()
         std::cout << "Key not found" << std::endl;
     }
     std::string filePath = file.generic_string();
+    */
+    std::string filePath = "../spaceStationProjectDirectory/TODO/";
+    std::string file = filePath + "Box/glTF-Draco/Box.gltf";
+
     Timer timer;
     timer.setTitle("Load GLTF file");
     timer.startTimer();
-    cModel myModel(filePath.c_str());
+    cModel myModel(file.c_str());
     timer.stopTimer();
 
     timer.setTitle("Upload data to gpu");
