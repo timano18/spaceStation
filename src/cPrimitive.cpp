@@ -16,9 +16,6 @@ cPrimitive::cPrimitive(std::vector<float> interleavedData, std::vector<unsigned 
 
 void cPrimitive::draw(Shader& shader)
 {
-    shader.use();
-    // shader.setVec3("objectColor", material.baseColor.x, material.baseColor.y, material.baseColor.z);
-
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, m_material.colorTextureID);
 
@@ -26,7 +23,7 @@ void cPrimitive::draw(Shader& shader)
     glBindTexture(GL_TEXTURE_2D, m_material.normalTextureID);
 
 
-    shader.setInt("material.diffuse", 1);
+    shader.setInt("material.diffuse", 0);
     shader.setInt("material.normal", 1);
     shader.setVec3("material.baseColor", m_material.baseColor);
     shader.setBool("material.hasTexture", m_material.hasColorTexture);

@@ -52,12 +52,16 @@ cModel::cModel(const char* path)
 
 }
 
-void cModel::Draw(Shader& shader)
+void cModel::Draw(Shader& shader, bool useBatchRendering)
 {
-    for (unsigned int i = 0; i < meshes.size(); i++) 
+    auto renderFunc = useBatchRendering
+        ? [](cMesh& mesh, Shader& shader) { mesh.renderBatch(shader); }
+    : [](cMesh& mesh, Shader& shader) { mesh.draw(shader); };
+
+    for (auto& mesh : meshes)
     {
-        shader.setMat4("model", meshes[i].transform);
-        meshes[i].draw(shader);
+        shader.setMat4("model", mesh.transform);
+        renderFunc(mesh, shader);
     }
 }
 
@@ -80,22 +84,16 @@ void cModel::loadTexture(cgltf_texture* texture, Texture& textureObject)
     {
         std::string fullPath = directory + '/' + image->uri;
 
-        if (m_TextureCache.find(image->uri) != m_TextureCache.end())
+        auto it = m_TextureCache.find(image->uri);
+
+        if (it != m_TextureCache.end())
         {
-            textureObject = m_TextureCache[image->uri];
+            textureObject = it->second;
         }
         else
         {
-            textureLoadCount++;
             std::string fileExtension = fullPath.substr(fullPath.find_last_of(".") + 1);
-            if (fileExtension == "dds")
-            {                
-                textureObject = Texture(fullPath, true);
-            }
-            else
-            {
-                textureObject = Texture(fullPath, false);
-            }
+            textureObject = Texture(fullPath, fileExtension == "dds");
             m_TextureCache[image->uri] = textureObject;
         }
     }
@@ -154,7 +152,6 @@ void cModel::loadModel(const char* path)
         return;
     }
 
-    std::vector<std::future<void>> futures;
 
     // Process Nodes
     for (cgltf_size i = 0; i < data->nodes_count; ++i) 
@@ -274,21 +271,20 @@ cMesh cModel::processMesh(cgltf_mesh* mesh, glm::mat4 transform)
         {
             cgltf_primitive* primitive = &mesh->primitives[p];
             cPrimitive newPrimitive = processPrimitive(primitive, index_type);
-            primitives.push_back(newPrimitive);
+            newPrimitive.m_PrimIndex = p;
+            primitives.push_back(std::move(newPrimitive));
         }
         catch (const std::exception& e)
         {
             std::cerr << "Error processing primitive " << p << ": " << e.what() << std::endl;
             continue;
-        }
+        } 
     }
 
 
  
-    cMesh newMesh(primitives);
+    cMesh newMesh(std::move(primitives));
     newMesh.transform = transform;
-    std::cout << "number of color textures loaded: " << textureLoadCount << std::endl;
-    std::cout << "number of normal textures loaded: " << normalTextureLoadCount << std::endl;
     return newMesh;
 }
 
@@ -298,6 +294,7 @@ cPrimitive cModel::processPrimitive(cgltf_primitive* primitive, GLenum& index_ty
     cgltf_accessor* v_normals = nullptr;
     cgltf_accessor* tex_coords = nullptr;
     cgltf_accessor* tangents = nullptr;
+  
 
     extractAttributes(primitive, positions, v_normals, tex_coords, tangents);
 
@@ -370,11 +367,6 @@ cPrimitive cModel::processPrimitive(cgltf_primitive* primitive, GLenum& index_ty
         }
     }
 
-    for (auto& future : m_Futures) {
-        future.get();
-    }
-    m_Futures.clear();
-
     Material newMaterial;
     try
     {
@@ -386,15 +378,26 @@ cPrimitive cModel::processPrimitive(cgltf_primitive* primitive, GLenum& index_ty
         throw;
     }
 
-    return cPrimitive(interleavedData, indices, index_type, newMaterial);
+    return cPrimitive(std::move(interleavedData), std::move(indices), index_type, newMaterial);
 }
 
 
 
-void cModel::uploadToGpu()
+void cModel::uploadToGpu(Shader& shader)
 {
     for (auto& mesh : meshes)
     {
+        shader.setMat4("model", mesh.transform);
+        mesh.transformChanged = true;
         mesh.uploadToGpu();
+
+    }
+}
+
+void cModel::batchTest()
+{
+    for (auto& mesh : meshes)
+    {
+        mesh.combinePrimitiveData();
     }
 }

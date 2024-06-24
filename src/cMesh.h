@@ -14,11 +14,20 @@ class cMesh
 public:
     std::vector<cPrimitive> primitives;
     glm::mat4 transform;
-
+    bool transformChanged;
     cMesh(const std::vector<cPrimitive>& primitives);
+    std::vector<float> m_CombinedInterleavedData;
+    std::vector<unsigned int> m_CombinedIndices;
+    std::unordered_map<GLuint, Material> m_PrimMateriallsMap;
+    std::vector<Texture> m_ColorTextures;
+    GLuint m_TextureID;
+    GLuint m_VAO;
+    
 
     void draw(Shader& shader);
     void uploadToGpu();
+    void combinePrimitiveData();
+    void renderBatch(Shader& shader);
 };
 
 

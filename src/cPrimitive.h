@@ -15,7 +15,7 @@ public:
     GLenum m_indexType;
     Material m_material;
     GLuint m_VAO;
-
+    int m_PrimIndex;
 
     cPrimitive(std::vector<float> interleavedData, std::vector<unsigned int> indices, GLenum nIndex_type, Material nMaterial);
 

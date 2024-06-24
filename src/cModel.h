@@ -35,11 +35,9 @@ public:
 
     std::vector<std::future<void>> m_Futures;
 
-    int textureLoadCount = 0;
-    int normalTextureLoadCount = 0;
 
     cModel(const char* path);
-    void Draw(Shader& shader);
+    void Draw(Shader& shader, bool useBatchRendering);
     std::vector<MipmapData> readDDS(const std::string& filePath, DDSHeader& header, DDSHeaderDX10& headerDX10);
     void checkGLError(const std::string& message);
     GLuint loadDDSTexture(const std::string& path);
@@ -52,7 +50,8 @@ public:
     float* getBufferData(cgltf_accessor* accessor);
     cMesh processMesh(cgltf_mesh* mesh, glm::mat4 transform);
     cPrimitive processPrimitive(cgltf_primitive* primitive, GLenum& index_type);
-    void uploadToGpu();
+    void uploadToGpu(Shader& shader);
+    void batchTest();
 
 };
 

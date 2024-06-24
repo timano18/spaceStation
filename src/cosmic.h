@@ -10,7 +10,7 @@
 
 
 
-
+bool useBatchRendering = false;
 
 
 glm::vec3 objectColor = glm::vec3(1.0f);
@@ -90,6 +90,18 @@ void processInput(float deltaTime)
         {
             flashlight = !flashlight;
         }
+        if (event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_1)
+        {
+            glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
+        }
+        if (event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_2)
+        {
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        }
+        if (event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_3)
+        {
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        }
         if (event.type == SDL_MOUSEMOTION && !showUI)
         {
             camera.ProcessMouseMovement(event.motion.xrel, event.motion.yrel);
@@ -157,6 +169,7 @@ void gui()
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
     ImGui::Text("Camera Position: X: %.3f  Y: %.3f  Z: %.3f", camera.Position.x, camera.Position.y, camera.Position.z);
     ImGui::Checkbox("Use normal texture: ", &useNormalTexture);
+    ImGui::Checkbox("Use batch rendering", &useBatchRendering);
 
     if (ImGui::ColorEdit3("Edit lightColor", (float*)&lightColor));
 
@@ -315,8 +328,10 @@ int run()
 
     timer.setTitle("Upload data to gpu");
     timer.startTimer();
-    myModel.uploadToGpu();
+    myModel.uploadToGpu(shader);
     timer.stopTimer();
+
+    myModel.batchTest();
 
 
 
@@ -342,82 +357,26 @@ int run()
 
         shader.use();
         // directional Light
-        // spotLight
-        shader.setVec3("dirLight.direction", -2.0f, -1.0f, 3.0f);
-        shader.setVec3("dirLight.ambient", glm::vec3(0.5f));
-        shader.setVec3("dirLight.diffuse", glm::vec3(0.5f));
-        shader.setVec3("dirLight.specular", glm::vec3(0.5f));
+        static glm::vec3 lightDir(-2.0f, -1.0f, 3.0f);
+        static glm::vec3 lightColor(0.5f, 0.5f, 0.5f);
+        shader.setVec3("dirLight.direction", lightDir);
+        shader.setVec3("dirLight.ambient", lightColor);
+        shader.setVec3("dirLight.diffuse", lightColor);
+        shader.setVec3("dirLight.specular", lightColor);
         shader.setBool("dirLight.enabled", true);
 
-
-        // spotLight
-        shader.setVec3("spotLight.position", camera.Position);
-        shader.setVec3("spotLight.direction", camera.Front);
-        shader.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
-        shader.setVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
-        shader.setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
-        shader.setFloat("spotLight.constant", 1.0f);
-        shader.setFloat("spotLight.linear", 0.09f);
-        shader.setFloat("spotLight.quadratic", 0.032f);
-        shader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
-        shader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
-        shader.setBool("spotLight.enabled", flashlight);
-
-        shader.setVec3("viewPos", camera.Position);
-        shader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
-        shader.setFloat("material.shininess", 32.0f);
-        shader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
-        shader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f); // darken diffuse light a bit
-        shader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
-        shader.setBool("useNormalTexture", useNormalTexture);
-
-        shader.setVec3("light.position", camera.Position);
-        shader.setVec3("light.direction", camera.Front);
-        shader.setFloat("light.cutOff", glm::cos(glm::radians(12.5f)));
-        shader.setFloat("light.outerCutOff", glm::cos(glm::radians(17.5f)));
-
-
-        glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-
         // view/projection transformations
-        shader.use();
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.01f, 10000.0f);
         glm::mat4 view = camera.GetViewMatrix();
-        glm::mat4 model = glm::mat4(1.0f);
         shader.setMat4("projection", projection);
         shader.setMat4("view", view);
-        // render loaded model
-       // glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glm::mat4 modelT = glm::mat4(1.0f);
-        modelT = glm::translate(modelT, glm::vec3(0.0f, 0.0f, 0.0f));
-        modelT = scale(modelT, glm::vec3(0.005f, 0.005f, 0.005f));
-        shader.use();
-        shader.setMat4("model", modelT);
-        //ourModel.Draw(shader);
-
-        shader.use();
-        simpleShader.setVec3("objectColor", objectColor);
-        simpleShader.setVec3("lightColor", lightColor);
-        simpleShader.setVec3("lightPos", 1.2f, 1.0f, 5.0f);
-        simpleShader.setVec3("viewPos", camera.Position);
-        simpleShader.setMat4("projection", projection);
-        simpleShader.setMat4("view", view);
-        // Bind the VAO containing the mesh's VBO and EBO
-
-        simpleShader.setMat4("model", model);
-        myModel.Draw(shader);
-
-
+ 
+        myModel.Draw(shader, useBatchRendering);
 
         // Start the Dear ImGui frame
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplSDL2_NewFrame();
         ImGui::NewFrame();
-
 
 
         if (showUI)
@@ -434,7 +393,6 @@ int run()
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         // Swap buffers
         SDL_GL_SwapWindow(window);
-
     }
 
 
