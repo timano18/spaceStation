@@ -31,21 +31,18 @@ class cModel
 public:
     std::vector<cMesh> meshes;
     std::string directory;
-    std::unordered_map<std::string, Texture> colorTextureCache;
-    std::unordered_map<std::string, Texture> normalTextureCache;
-    std::unordered_map<std::string, Texture> aoTextureCache;
+    std::unordered_map<std::string, Texture> m_TextureCache;
+
     std::vector<std::future<void>> m_Futures;
 
-    int textureLoadCount = 0;
-    int normalTextureLoadCount = 0;
 
     cModel(const char* path);
-    void Draw(Shader& shader);
+    void Draw(Shader& shader, bool useBatchRendering);
     std::vector<MipmapData> readDDS(const std::string& filePath, DDSHeader& header, DDSHeaderDX10& headerDX10);
     void checkGLError(const std::string& message);
     GLuint loadDDSTexture(const std::string& path);
     Texture loadStandardTexture(const std::string& path);
-    void loadTexture(cgltf_texture* texture, Texture& textureObject, std::unordered_map<std::string, Texture>& textureCache, int& textureLoadCount);
+    void loadTexture(cgltf_texture* texture, Texture& textureObject);
     Material createMaterial(cgltf_primitive* primitive);
     void loadModel(const char* path);
     void processNode(cgltf_node* node, const glm::mat4& parentTransform = glm::mat4(1.0f));
@@ -53,7 +50,8 @@ public:
     float* getBufferData(cgltf_accessor* accessor);
     cMesh processMesh(cgltf_mesh* mesh, glm::mat4 transform);
     cPrimitive processPrimitive(cgltf_primitive* primitive, GLenum& index_type);
-    void uploadToGpu();
+    void uploadToGpu(Shader& shader);
+    void batchTest();
 
 };
 
