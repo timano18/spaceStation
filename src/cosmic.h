@@ -29,8 +29,8 @@ void gui();
 void processInput(float deltaTime);
 
 //Screen dimension constants
-const int SCR_WIDTH = 2560;
-const int SCR_HEIGHT = 1440;
+const int SCR_WIDTH = 3840;
+const int SCR_HEIGHT = 2160;
 
 bool stopRendering = false;
 bool showUI = false;
@@ -90,15 +90,15 @@ void processInput(float deltaTime)
         {
             flashlight = !flashlight;
         }
-        if (event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_1)
+        if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_1)
         {
             glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
         }
-        if (event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_2)
+        if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_2)
         {
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         }
-        if (event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_3)
+        if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_3)
         {
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         }
@@ -194,7 +194,7 @@ int run()
 
     // Setup MSAA
     SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 16);
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 1);
 
     // Set OpenGL version to 3.3
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
@@ -231,7 +231,6 @@ int run()
     }
 
 
-
     // MSAA ENABLE
     glEnable(GL_MULTISAMPLE);
     glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
@@ -261,8 +260,6 @@ int run()
         scalingFactor = 1.0f;
     }
 
-
-
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
@@ -270,37 +267,21 @@ int run()
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
-
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
-
-    //ImGui::StyleColorsLight();
 
     // Setup Platform/Renderer backends
     ImGui_ImplSDL2_InitForOpenGL(window, maincontext);
     ImGui_ImplOpenGL3_Init("#version 330");
-
 
     // Create a shader
     Shader shader("shaders/shader.vert", "shaders/shader.frag");
     Shader postShader("shaders/postShader.vert", "shaders/postShader.frag");
     Shader simpleShader("shaders/simpleShader.vert", "shaders/simpleShader.frag");
 
-
-
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    // Load model
-    //char modelPath[] = "resources/objects/sponzaOBJ/sponza.obj";
-
-
-
-
-
-
-    
 
     std::unordered_map<std::string, fs::path> files;
     {
@@ -334,14 +315,18 @@ int run()
     myModel.batchTest();
 
 
-
-   
-
-    //loadGLTFMeshToGPU("resources/objects/test/bone.glb");
-
     SDL_SetRelativeMouseMode(SDL_TRUE);
+    glEnable(GL_DEPTH_TEST);
 
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    shader.use();
+    // directional Light
+    static glm::vec3 lightDir(-2.0f, -1.0f, 3.0f);
+    static glm::vec3 lightColor(0.5f, 0.5f, 0.5f);
+    shader.setVec3("dirLight.direction", lightDir);
+    shader.setVec3("dirLight.ambient", lightColor);
+    shader.setVec3("dirLight.diffuse", lightColor);
+    shader.setVec3("dirLight.specular", lightColor);
+    shader.setBool("dirLight.enabled", true);
 
     while (!stopRendering)
     {
@@ -351,19 +336,8 @@ int run()
         //Input
         processInput(deltaTime);
 
-        glEnable(GL_DEPTH_TEST); // enable depth testing (is disabled for rendering screen-space quad)
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        shader.use();
-        // directional Light
-        static glm::vec3 lightDir(-2.0f, -1.0f, 3.0f);
-        static glm::vec3 lightColor(0.5f, 0.5f, 0.5f);
-        shader.setVec3("dirLight.direction", lightDir);
-        shader.setVec3("dirLight.ambient", lightColor);
-        shader.setVec3("dirLight.diffuse", lightColor);
-        shader.setVec3("dirLight.specular", lightColor);
-        shader.setBool("dirLight.enabled", true);
 
         // view/projection transformations
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.01f, 10000.0f);
@@ -373,24 +347,27 @@ int run()
  
         myModel.Draw(shader, useBatchRendering);
 
-        // Start the Dear ImGui frame
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplSDL2_NewFrame();
-        ImGui::NewFrame();
+
 
 
         if (showUI)
         {
+            // Start the Dear ImGui frame
+            ImGui_ImplOpenGL3_NewFrame();
+            ImGui_ImplSDL2_NewFrame();
+            ImGui::NewFrame();
             gui();
             SDL_SetRelativeMouseMode(SDL_FALSE);
+            ImGui::Render();
+            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
         }
         else
             SDL_SetRelativeMouseMode(SDL_TRUE);
 
 
-        ImGui::Render();
+        
         glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         // Swap buffers
         SDL_GL_SwapWindow(window);
     }
