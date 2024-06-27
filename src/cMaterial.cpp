@@ -24,8 +24,10 @@ GLuint Material::createOpenGLTexture(const Texture& texture)
     }
     else
     {
+
+
         glTexImage2D(GL_TEXTURE_2D, 0, texture.m_format, texture.m_width, texture.m_height, 0, texture.m_format, GL_UNSIGNED_BYTE, texture.m_data.data());
-        glGenerateMipmap(GL_TEXTURE_2D);
+         glGenerateMipmap(GL_TEXTURE_2D);
     }
 
 

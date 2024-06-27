@@ -8,6 +8,8 @@
 #include <fstream>
 #include <thread>
 
+
+
 struct DDSHeader
 {
     uint32_t size;
@@ -54,8 +56,8 @@ struct DDSHeaderDX10
 class Texture {
 public:
     GLenum m_format;
-    int m_width;
-    int m_height;
+    int m_width = 0;
+    int m_height = 0;
     std::vector<unsigned char> m_data;
     std::vector<MipmapData> m_ddsData;
     bool m_isDDS;
@@ -74,7 +76,7 @@ public:
         }
  
     }
-    Texture()
+    Texture() : m_isDDS(false)
     {
     }
 
@@ -188,14 +190,43 @@ public:
 
     void loadStandardTexture(const std::string& path)
     {
+        
         int nrChannels;
         unsigned char* rawData = stbi_load(path.c_str(), &m_width, &m_height, &nrChannels, 0);
         if (rawData == nullptr) {
             throw std::runtime_error("Failed to load image: " + path);
         }
         // Copy data to vector and free raw data
+       
+        
         m_data.assign(rawData, rawData + (m_width * m_height * nrChannels));
-        //stbi_image_free(rawData);
+        stbi_image_free(rawData);
+        
+
+
+        switch (nrChannels)
+        {
+        case 1: m_format = GL_RED; break;
+        case 3: m_format = GL_RGB; break;
+        case 4: m_format = GL_RGBA; break;
+        default:
+            std::cerr << "Unsupported number of channels: " << nrChannels << std::endl;
+        }
+    }
+
+    void loadStandardTextureFromBuffer(unsigned char* imageData, size_t bufferLength)
+    {
+        int nrChannels;
+        unsigned char* rawData = stbi_load_from_memory(imageData, bufferLength, &m_width, &m_height, &nrChannels, 0);
+        if (rawData == nullptr) {
+            throw std::runtime_error("Failed to load image from memory");
+        }
+
+        // Copy data to vector and free raw data
+        m_data.assign(rawData, rawData + (m_width * m_height * nrChannels));
+        stbi_image_free(rawData);
+
+
         switch (nrChannels)
         {
         case 1: m_format = GL_RED; break;

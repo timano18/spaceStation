@@ -16,8 +16,9 @@ public:
     Material m_material;
     GLuint m_VAO;
     int m_PrimIndex;
+    bool m_HasIndices;
 
-    cPrimitive(std::vector<float> interleavedData, std::vector<unsigned int> indices, GLenum nIndex_type, Material nMaterial);
+    cPrimitive(std::vector<float> interleavedData, std::vector<unsigned int> indices, GLenum nIndex_type, Material nMaterial, bool hasIndices);
 
     void draw(Shader& shader);
 

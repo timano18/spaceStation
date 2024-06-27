@@ -33,7 +33,10 @@ public:
     std::string directory;
     std::unordered_map<std::string, Texture> m_TextureCache;
 
-    std::vector<std::future<void>> m_Futures;
+    std::vector<float> m_CombinedInterleavedData;
+    std::vector<unsigned int> m_CombinedIndices;
+
+    GLuint m_VAO;
 
 
     cModel(const char* path);
@@ -52,6 +55,7 @@ public:
     cPrimitive processPrimitive(cgltf_primitive* primitive, GLenum& index_type);
     void uploadToGpu(Shader& shader);
     void batchTest();
+    void renderModelBatch(Shader& shader);
 
 };
 

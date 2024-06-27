@@ -6,11 +6,11 @@ void checkGLError(const std::string& message)
     GLenum err;
     while ((err = glGetError()) != GL_NO_ERROR)
     {
-        std::cerr << "OpenGL error during " << message << ": " << err << std::endl;
+        std::cerr << "OpenGL error during " << message << ": " << err << "\n";
     }
 }
-cPrimitive::cPrimitive(std::vector<float> interleavedData, std::vector<unsigned int> indices, GLenum nIndex_type, Material nMaterial)
-    : m_interleavedData(interleavedData), m_indices(indices), m_indexType(nIndex_type), m_material(nMaterial)
+cPrimitive::cPrimitive(std::vector<float> interleavedData, std::vector<unsigned int> indices, GLenum nIndex_type, Material nMaterial, bool hasIndices)
+    : m_interleavedData(interleavedData), m_indices(indices), m_indexType(nIndex_type), m_material(nMaterial), m_HasIndices(hasIndices)
 {
 }
 
@@ -29,10 +29,17 @@ void cPrimitive::draw(Shader& shader)
     shader.setBool("material.hasTexture", m_material.hasColorTexture);
     glBindVertexArray(this->m_VAO);
 
-    glDrawElements(GL_TRIANGLES, // mode: specifies the kind of primitives to render
-        m_indices.size(), // count: specifies the number of elements to be rendered
-        m_indexType, // type: specifies the type of the values in indices
-        0); // indices: specifies a pointer to the location where the indices are stored (NULL if EBO is bound)
+    if (m_HasIndices) 
+    {
+        glDrawElements(GL_TRIANGLES, // mode: specifies the kind of primitives to render
+            m_indices.size(), // count: specifies the number of elements to be rendered
+            m_indexType, // type: specifies the type of the values in indices
+            0); // indices: specifies a pointer to the location where the indices are stored (NULL if EBO is bound)
+    }
+    else
+    {
+        std::cout << "Implement glDrawArrays" << "\n";
+    }
 
     // Unbind the VAO to prevent accidental modifications
     glBindVertexArray(0);
@@ -44,7 +51,7 @@ void cPrimitive::uploadToGPU()
     GLenum err;
     while ((err = glGetError()) != GL_NO_ERROR)
     {
-        std::cerr << "OpenGL error during " << "message" << ": " << err << std::endl;
+        std::cerr << "OpenGL error during " << "message" << ": " << err << "\n";
     }
     GLuint EBO, VBO;
     glGenVertexArrays(1, &this->m_VAO);

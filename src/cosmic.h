@@ -242,7 +242,7 @@ int run()
     stbi_set_flip_vertically_on_load(false);
 
     // 1 for v-sync
-    SDL_GL_SetSwapInterval(0);
+    SDL_GL_SetSwapInterval(1);
 
     // Enable depth test
     glEnable(GL_DEPTH_TEST);
@@ -304,7 +304,11 @@ int run()
     std::string filePath = file.generic_string();
     */
     std::string filePath = "../spaceStationProjectDirectory/TODO/";
-    std::string file = filePath + "Box/glTF-Draco/Box.gltf";
+    std::string file = filePath + "BoxTexturedNonPowerOfTwo/glTF-Embedded/BoxTexturedNonPowerOfTwo.gltf";
+    //file = "C:/spaceStationProjectDirectory/completed/BoxTextured/glTF/BoxTextured.gltf";
+    file = "C:/SponzaDDS/glTF/SponzaDDS.gltf";
+    file = "C:/bistro/bistroExterior.gltf";
+
 
     Timer timer;
     timer.setTitle("Load GLTF file");
@@ -338,6 +342,7 @@ int run()
         float currentFrame = SDL_GetTicks64() / 1000.0f;
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
+        std::cout << deltaTime * 1000 << "ms\n";
         //Input
         processInput(deltaTime);
 
@@ -351,8 +356,6 @@ int run()
         shader.setMat4("view", view);
  
         myModel.Draw(shader, useBatchRendering);
-
-
 
 
         if (showUI)
