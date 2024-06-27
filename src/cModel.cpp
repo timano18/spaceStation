@@ -97,20 +97,20 @@ bool is_base64_encoded_image(const char* uri)
     return false;
 }
 
-void cModel::loadTexture(cgltf_texture* texture, Texture& textureObject)
+void cModel::loadTexture(cgltf_texture* texture, std::shared_ptr<Texture>& textureObject)
 {
     cgltf_image* image = texture->image;
 
     if (image->buffer_view)
     {
-        textureObject = Texture();
+        textureObject = std::make_shared<Texture>();
         void* bufferData = image->buffer_view->buffer->data;
         size_t bufferOffset = image->buffer_view->offset;
         size_t bufferLength = image->buffer_view->size;
 
         unsigned char* imageData = static_cast<unsigned char*>(bufferData) + bufferOffset;
-        textureObject.loadStandardTextureFromBuffer(imageData, bufferLength);
-        textureObject.m_isDDS = false;
+        textureObject->loadStandardTextureFromBuffer(imageData, bufferLength);
+        textureObject->m_isDDS = false;
     }
     if (image && image->uri)
     {
@@ -119,11 +119,11 @@ void cModel::loadTexture(cgltf_texture* texture, Texture& textureObject)
         {
             std::string base64String = path.substr(path.find(',') + 1);
             std::cout << "Image is base64 encoded" << "\n";
-            
+
             std::string decodedData = base64_decode(base64String);
-            textureObject.loadStandardTextureFromBuffer((unsigned char*) decodedData.data(), decodedData.size());
-            textureObject.m_isDDS = false;
-      
+            textureObject = std::make_shared<Texture>();
+            textureObject->loadStandardTextureFromBuffer((unsigned char*)decodedData.data(), decodedData.size());
+            textureObject->m_isDDS = false;
         }
         else
         {
@@ -138,12 +138,10 @@ void cModel::loadTexture(cgltf_texture* texture, Texture& textureObject)
             else
             {
                 std::string fileExtension = fullPath.substr(fullPath.find_last_of(".") + 1);
-                textureObject = Texture(fullPath, fileExtension == "dds");
+                textureObject = std::make_shared<Texture>(fullPath, fileExtension == "dds");
                 m_TextureCache[image->uri] = textureObject;
             }
         }
- 
-
     }
     checkGLError("Error");
 }
@@ -219,60 +217,34 @@ void cModel::loadModel(const char* path)
 
 void cModel::processNode(cgltf_node* node, const glm::mat4& parentTransform)
 {
-    if (!node) 
-    {
+    if (!node) {
         std::cerr << "Invalid node pointer" << std::endl;
         return;
     }
 
     glm::mat4 nodeTransform = parentTransform;
-
-    if (node->has_matrix) 
-    {
+    if (node->has_matrix) {
         glm::mat4 matrix;
         memcpy(glm::value_ptr(matrix), node->matrix, sizeof(node->matrix));
         nodeTransform = parentTransform * matrix;
     }
-    else 
-    {
-        // Default translation, rotation, and scale
-        glm::vec3 translation(0.0f), scale(1.0f);
-        glm::quat rotation(1.0f, 0.0f, 0.0f, 0.0f);
+    else {
+        glm::vec3 translation = node->has_translation ? glm::make_vec3(node->translation) : glm::vec3(0.0f);
+        glm::quat rotation = node->has_rotation ? glm::make_quat(node->rotation) : glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
+        glm::vec3 scale = node->has_scale ? glm::make_vec3(node->scale) : glm::vec3(1.0f);
 
-        // Apply node transformations if present
-        if (node->has_translation) 
-        {
-            translation = glm::make_vec3(node->translation);
-        }
-        if (node->has_rotation) 
-        {
-            rotation = glm::make_quat(node->rotation);
-        }
-        if (node->has_scale) 
-        {
-            scale = glm::make_vec3(node->scale);
-        }
-
-        // Construct the transformation matrix from T, R, S
-        glm::mat4 T = glm::translate(glm::mat4(1.0f), translation);
-        glm::mat4 R = glm::toMat4(rotation);
-        glm::mat4 S = glm::scale(glm::mat4(1.0f), scale);
-
-        nodeTransform = parentTransform * T * R * S;
+        nodeTransform = parentTransform * glm::translate(glm::mat4(1.0f), translation) * glm::toMat4(rotation) * glm::scale(glm::mat4(1.0f), scale);
     }
 
-    // Process the mesh attached to the node if it exists
-    if (node->mesh) 
-    {
+    if (node->mesh) {
         meshes.push_back(processMesh(node->mesh, nodeTransform));
     }
 
-    // Process children nodes recursively
-    for (cgltf_size i = 0; i < node->children_count; ++i) 
-    {
+    for (cgltf_size i = 0; i < node->children_count; ++i) {
         processNode(node->children[i], nodeTransform);
     }
 }
+
 
 void cModel::extractAttributes(cgltf_primitive* primitive, cgltf_accessor*& positions, cgltf_accessor*& normals, cgltf_accessor*& texCoords, cgltf_accessor*& tangents)
 {

@@ -6,19 +6,19 @@ Material::Material() : baseColor(1.0f, 1.0f, 1.0f, 1.0f) {}
 
 Material::Material(glm::vec4 nBaseColor) : baseColor(nBaseColor){}
 
-GLuint Material::createOpenGLTexture(const Texture& texture)
+GLuint Material::createOpenGLTexture(const std::shared_ptr<Texture>& texture)
 {
 
     GLuint textureID;
     glGenTextures(1, &textureID);
     glBindTexture(GL_TEXTURE_2D, textureID);
 
-    if (texture.m_isDDS)
+    if (texture->m_isDDS)
     {
-        for (size_t level = 0; level < texture.m_ddsData.size(); ++level)
+        for (size_t level = 0; level < texture->m_ddsData.size(); ++level)
         {
-            const auto& mipmap = texture.m_ddsData[level];
-            glCompressedTexImage2D(GL_TEXTURE_2D, level, texture.m_format, mipmap.width, mipmap.height, 0, mipmap.data.size(), mipmap.data.data());
+            const auto& mipmap = texture->m_ddsData[level];
+            glCompressedTexImage2D(GL_TEXTURE_2D, level, texture->m_format, mipmap.width, mipmap.height, 0, mipmap.data.size(), mipmap.data.data());
             //checkGLError("texture upload at mipmap level " + std::to_string(level));
         }
     }
@@ -26,7 +26,7 @@ GLuint Material::createOpenGLTexture(const Texture& texture)
     {
 
 
-        glTexImage2D(GL_TEXTURE_2D, 0, texture.m_format, texture.m_width, texture.m_height, 0, texture.m_format, GL_UNSIGNED_BYTE, texture.m_data.data());
+        glTexImage2D(GL_TEXTURE_2D, 0, texture->m_format, texture->m_width, texture->m_height, 0, texture->m_format, GL_UNSIGNED_BYTE, texture->m_data.data());
          glGenerateMipmap(GL_TEXTURE_2D);
     }
 

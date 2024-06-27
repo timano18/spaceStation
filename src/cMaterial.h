@@ -12,13 +12,13 @@ public:
     GLuint normalTextureID;
     GLuint aoTextureID;
     
-    Texture colorTexture;
-    Texture normalTexture;
+    std::shared_ptr<Texture> colorTexture;
+    std::shared_ptr<Texture> normalTexture;
 
     bool hasColorTexture;
 
     Material();
     Material(glm::vec4 nBaseColor);
-    GLuint createOpenGLTexture(const Texture& texture);
+    GLuint createOpenGLTexture(const std::shared_ptr<Texture>& texture);
     void createAllTextures();
 };
