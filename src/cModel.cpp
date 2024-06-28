@@ -61,6 +61,7 @@ cModel::cModel(const char* path)
 
 void cModel::Draw(Shader& shader, bool useBatchRendering)
 {
+    /*
     auto renderFunc = useBatchRendering
         ? [](cMesh& mesh, Shader& shader) { mesh.renderBatch(shader); }
     : [](cMesh& mesh, Shader& shader) { mesh.draw(shader); };
@@ -70,6 +71,23 @@ void cModel::Draw(Shader& shader, bool useBatchRendering)
         shader.setMat4("model", mesh.transform);
         renderFunc(mesh, shader);
     }
+    */
+    
+    if (useBatchRendering)
+    {
+        shader.setMat4("model", glm::mat4(1.0));
+        renderModelBatch(shader);
+    }
+    else
+    {
+        for (auto& mesh : meshes)
+        {
+            shader.setMat4("model", mesh.transform);
+            mesh.draw(shader);
+        }
+    }
+    
+
 }
 
 
@@ -97,6 +115,31 @@ bool is_base64_encoded_image(const char* uri)
     return false;
 }
 
+std::string urlDecode(const std::string& encoded)
+{
+    std::ostringstream decoded;
+    for (size_t i = 0; i < encoded.length(); ++i) {
+        if (encoded[i] == '%' && (i + 2) < encoded.length()) {
+            std::istringstream iss(encoded.substr(i + 1, 2));
+            int hexValue;
+            if (iss >> std::hex >> hexValue) {
+                decoded << static_cast<char>(hexValue);
+                i += 2;
+            }
+            else {
+                decoded << encoded[i];
+            }
+        }
+        else if (encoded[i] == '+') {
+            decoded << ' ';
+        }
+        else {
+            decoded << encoded[i];
+        }
+    }
+    return decoded.str();
+}
+
 void cModel::loadTexture(cgltf_texture* texture, std::shared_ptr<Texture>& textureObject)
 {
     cgltf_image* image = texture->image;
@@ -114,7 +157,7 @@ void cModel::loadTexture(cgltf_texture* texture, std::shared_ptr<Texture>& textu
     }
     if (image && image->uri)
     {
-        std::string path = image->uri;
+        std::string path = urlDecode(image->uri);
         if (is_base64_encoded_image(image->uri))
         {
             std::string base64String = path.substr(path.find(',') + 1);
@@ -137,7 +180,10 @@ void cModel::loadTexture(cgltf_texture* texture, std::shared_ptr<Texture>& textu
             }
             else
             {
+                
+                
                 std::string fileExtension = fullPath.substr(fullPath.find_last_of(".") + 1);
+   
                 textureObject = std::make_shared<Texture>(fullPath, fileExtension == "dds");
                 m_TextureCache[image->uri] = textureObject;
             }
@@ -199,7 +245,7 @@ void cModel::loadModel(const char* path)
         return;
     }
 
-
+    std::cout << "Number of nodes: " << data->nodes_count << "\n";
     // Process Nodes
     for (cgltf_size i = 0; i < data->nodes_count; ++i) 
     {
@@ -209,7 +255,7 @@ void cModel::loadModel(const char* path)
         }
     }
 
-    std::cout << totalPrimitives << "\n";
+    std::cout << "Total amount of primitives: " << totalPrimitives << "\n";
 
     // Free the loaded data
     cgltf_free(data);
@@ -246,10 +292,12 @@ void cModel::processNode(cgltf_node* node, const glm::mat4& parentTransform)
 }
 
 
-void cModel::extractAttributes(cgltf_primitive* primitive, cgltf_accessor*& positions, cgltf_accessor*& normals, cgltf_accessor*& texCoords, cgltf_accessor*& tangents)
+void cModel::extractAttributes(cgltf_primitive* primitive, cgltf_accessor*& positions, cgltf_accessor*& normals, cgltf_accessor*& texCoords0, cgltf_accessor*& texCoords1, cgltf_accessor*& tangents, cgltf_accessor*& colors)
 {
+    std::cout << "Number of primitive attributes: " << primitive->attributes_count << "\n";
     for (int i = 0; i < primitive->attributes_count; i++) 
     {
+        std::cout << "Attribute: " << primitive->attributes[i].name << "\n";
         switch (primitive->attributes[i].type) 
         {
         case cgltf_attribute_type_position:
@@ -259,11 +307,21 @@ void cModel::extractAttributes(cgltf_primitive* primitive, cgltf_accessor*& posi
             normals = primitive->attributes[i].data;
             break;
         case cgltf_attribute_type_texcoord:
-            texCoords = primitive->attributes[i].data;
+            if (strcmp(primitive->attributes[i].name, "TEXCOORD_0") == 0)
+            {
+                std::cout << "TEXCOORD_0 added" << "\n";
+                texCoords0 = primitive->attributes[i].data;
+            }
+            if (strcmp(primitive->attributes[i].name, "TEXCOORD_1") == 0)
+            {
+                texCoords1 = primitive->attributes[i].data;
+            }
             break;
         case cgltf_attribute_type_tangent:
             tangents = primitive->attributes[i].data;
             break;
+        case cgltf_attribute_type_color:
+            colors = primitive->attributes[i].data;
         default:
             break;
         }
@@ -316,10 +374,12 @@ cPrimitive cModel::processPrimitive(cgltf_primitive* primitive, GLenum& index_ty
 {
     cgltf_accessor* positions = nullptr;
     cgltf_accessor* v_normals = nullptr;
-    cgltf_accessor* tex_coords = nullptr;
+    cgltf_accessor* tex_coords0 = nullptr;
+    cgltf_accessor* tex_coords1 = nullptr;
     cgltf_accessor* tangents = nullptr;
+    cgltf_accessor* v_colors = nullptr;
 
-    extractAttributes(primitive, positions, v_normals, tex_coords, tangents);
+    extractAttributes(primitive, positions, v_normals, tex_coords0, tex_coords1, tangents, v_colors);
 
     bool hasIndices = false;
   
@@ -346,7 +406,7 @@ cPrimitive cModel::processPrimitive(cgltf_primitive* primitive, GLenum& index_ty
     std::vector<float> interleavedData;
     interleavedData.reserve(positions->count * 11);
 
-    
+    // TODO
     if (primitive->has_draco_mesh_compression)
     {
         cgltf_draco_mesh_compression* draco_compression = &primitive->draco_mesh_compression;
@@ -434,7 +494,7 @@ cPrimitive cModel::processPrimitive(cgltf_primitive* primitive, GLenum& index_ty
     {
         float* vertices = getBufferData(positions);
         float* normData = getBufferData(v_normals);
-        float* texData = getBufferData(tex_coords);
+        float* texData = getBufferData(tex_coords0);
         float* tangData = getBufferData(tangents);
 
 
@@ -479,8 +539,7 @@ cPrimitive cModel::processPrimitive(cgltf_primitive* primitive, GLenum& index_ty
 
     }
     
-  
- 
+
     void* bufferData = getBufferData(primitive->indices);
 
  
@@ -535,11 +594,21 @@ void cModel::uploadToGpu(Shader& shader)
  
     for (auto& mesh : meshes)
     {
-        shader.setMat4("model", mesh.transform);
+        //shader.setMat4("model", mesh.transform);
         mesh.transformChanged = true;
         mesh.uploadToGpu();
-
     }
+    std::cout << "Number of texture" << m_TextureCache.size() << "\n";
+    for (const auto& pair : m_TextureCache) {
+        // pair is of type std::pair<const std::string, std::shared_ptr<Texture>>
+        pair.second->clearData();
+    }
+    
+}
+
+glm::vec3 transformVertex(const glm::vec3& vertex, const glm::mat4& transform)
+{
+    return glm::vec3(transform * glm::vec4(vertex, 1.0f));
 }
 
 void cModel::batchTest()
@@ -549,6 +618,17 @@ void cModel::batchTest()
     for (auto& mesh : meshes)
     {
         mesh.combinePrimitiveData();
+
+        // Apply transformation to each vertex in the mesh
+        for (size_t i = 0; i < mesh.m_CombinedInterleavedData.size(); i += 11) {
+            glm::vec3 vertex(mesh.m_CombinedInterleavedData[i], mesh.m_CombinedInterleavedData[i + 1], mesh.m_CombinedInterleavedData[i + 2]);
+            vertex = transformVertex(vertex, mesh.transform);
+
+            // Update the vertex position in the interleaved data
+            mesh.m_CombinedInterleavedData[i] = vertex.x;
+            mesh.m_CombinedInterleavedData[i + 1] = vertex.y;
+            mesh.m_CombinedInterleavedData[i + 2] = vertex.z;
+        }
 
         m_CombinedInterleavedData.insert(m_CombinedInterleavedData.end(), mesh.m_CombinedInterleavedData.begin(), mesh.m_CombinedInterleavedData.end());
 

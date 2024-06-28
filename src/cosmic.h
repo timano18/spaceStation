@@ -242,7 +242,7 @@ int run()
     stbi_set_flip_vertically_on_load(false);
 
     // 1 for v-sync
-    SDL_GL_SetSwapInterval(1);
+    SDL_GL_SetSwapInterval(0);
 
     // Enable depth test
     glEnable(GL_DEPTH_TEST);
@@ -304,13 +304,14 @@ int run()
     std::string filePath = file.generic_string();
     */
     std::string filePath = "../spaceStationProjectDirectory/TODO/";
-    std::string file = filePath + "BoxTexturedNonPowerOfTwo/glTF-Embedded/BoxTexturedNonPowerOfTwo.gltf";
+    std::string file = filePath + "MultiUVTest/glTF/MultiUVTest.gltf";
     //file = "C:/spaceStationProjectDirectory/completed/BoxTextured/glTF/BoxTextured.gltf";
-    file = "C:/SponzaDDS/glTF/SponzaDDS.gltf";
+    //file = "C:/SponzaDDS/glTF/SponzaDDS.gltf";
     file = "C:/bistro/bistroExterior.gltf";
 
 
     Timer timer;
+    
     timer.setTitle("Load GLTF file");
     timer.startTimer();
     cModel myModel(file.c_str());
@@ -342,7 +343,6 @@ int run()
         float currentFrame = SDL_GetTicks64() / 1000.0f;
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
-        std::cout << deltaTime * 1000 << "ms\n";
         //Input
         processInput(deltaTime);
 
@@ -350,7 +350,7 @@ int run()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // view/projection transformations
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.01f, 10000.0f);
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 1.0f, 1000.0f);
         glm::mat4 view = camera.GetViewMatrix();
         shader.setMat4("projection", projection);
         shader.setMat4("view", view);

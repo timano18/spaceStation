@@ -49,7 +49,7 @@ public:
     Material createMaterial(cgltf_primitive* primitive);
     void loadModel(const char* path);
     void processNode(cgltf_node* node, const glm::mat4& parentTransform = glm::mat4(1.0f));
-    void extractAttributes(cgltf_primitive* primitive, cgltf_accessor*& positions, cgltf_accessor*& normals, cgltf_accessor*& texCoords, cgltf_accessor*& tangents);
+    void extractAttributes(cgltf_primitive* primitive, cgltf_accessor*& positions, cgltf_accessor*& normals, cgltf_accessor*& texCoords0, cgltf_accessor*& texCoords1, cgltf_accessor*& tangents, cgltf_accessor*& colors);
     float* getBufferData(cgltf_accessor* accessor);
     cMesh processMesh(cgltf_mesh* mesh, glm::mat4 transform);
     cPrimitive processPrimitive(cgltf_primitive* primitive, GLenum& index_type);

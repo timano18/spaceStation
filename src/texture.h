@@ -152,6 +152,7 @@ public:
             const uint32_t FOURCC_DX10 = 0x30315844; // 'DX10'
             const uint32_t DXGI_FORMAT_BC7_UNORM = 98;
             const uint32_t DXGI_FORMAT_BC7_UNORM_SRGB = 99;
+       
 
             switch (header.pixelFormat.fourCC) {
             case FOURCC_DXT1:
@@ -178,6 +179,7 @@ public:
                 }
                 break;
             default:
+                std::cout << "DDS format: " << header.pixelFormat.fourCC << "\n";
                 throw std::runtime_error("Unsupported DDS format");
             }
             m_format = format;
@@ -236,4 +238,13 @@ public:
             std::cerr << "Unsupported number of channels: " << nrChannels << std::endl;
         }
     }
+
+    void clearData()
+    {
+        m_data.clear();
+        m_data.shrink_to_fit();
+        m_ddsData.clear();
+        m_ddsData.shrink_to_fit();
+    }
 };
+

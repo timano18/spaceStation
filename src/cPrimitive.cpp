@@ -47,7 +47,11 @@ void cPrimitive::draw(Shader& shader)
 
 void cPrimitive::uploadToGPU()
 {
-    m_material.createAllTextures();
+    if (m_material.hasColorTexture)
+    {
+        m_material.createAllTextures();
+    }
+
     GLenum err;
     while ((err = glGetError()) != GL_NO_ERROR)
     {
