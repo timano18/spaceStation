@@ -8,6 +8,8 @@
 #include <fstream>
 #include <thread>
 
+
+
 struct DDSHeader
 {
     uint32_t size;
@@ -54,8 +56,8 @@ struct DDSHeaderDX10
 class Texture {
 public:
     GLenum m_format;
-    int m_width;
-    int m_height;
+    int m_width = 0;
+    int m_height = 0;
     std::vector<unsigned char> m_data;
     std::vector<MipmapData> m_ddsData;
     bool m_isDDS;
@@ -74,7 +76,7 @@ public:
         }
  
     }
-    Texture()
+    Texture() : m_isDDS(false)
     {
     }
 
@@ -150,6 +152,7 @@ public:
             const uint32_t FOURCC_DX10 = 0x30315844; // 'DX10'
             const uint32_t DXGI_FORMAT_BC7_UNORM = 98;
             const uint32_t DXGI_FORMAT_BC7_UNORM_SRGB = 99;
+       
 
             switch (header.pixelFormat.fourCC) {
             case FOURCC_DXT1:
@@ -176,6 +179,7 @@ public:
                 }
                 break;
             default:
+                std::cout << "DDS format: " << header.pixelFormat.fourCC << "\n";
                 throw std::runtime_error("Unsupported DDS format");
             }
             m_format = format;
@@ -188,14 +192,20 @@ public:
 
     void loadStandardTexture(const std::string& path)
     {
+        
         int nrChannels;
         unsigned char* rawData = stbi_load(path.c_str(), &m_width, &m_height, &nrChannels, 0);
         if (rawData == nullptr) {
             throw std::runtime_error("Failed to load image: " + path);
         }
         // Copy data to vector and free raw data
+       
+        
         m_data.assign(rawData, rawData + (m_width * m_height * nrChannels));
-        //stbi_image_free(rawData);
+        stbi_image_free(rawData);
+        
+
+
         switch (nrChannels)
         {
         case 1: m_format = GL_RED; break;
@@ -205,4 +215,36 @@ public:
             std::cerr << "Unsupported number of channels: " << nrChannels << std::endl;
         }
     }
+
+    void loadStandardTextureFromBuffer(unsigned char* imageData, size_t bufferLength)
+    {
+        int nrChannels;
+        unsigned char* rawData = stbi_load_from_memory(imageData, bufferLength, &m_width, &m_height, &nrChannels, 0);
+        if (rawData == nullptr) {
+            throw std::runtime_error("Failed to load image from memory");
+        }
+
+        // Copy data to vector and free raw data
+        m_data.assign(rawData, rawData + (m_width * m_height * nrChannels));
+        stbi_image_free(rawData);
+
+
+        switch (nrChannels)
+        {
+        case 1: m_format = GL_RED; break;
+        case 3: m_format = GL_RGB; break;
+        case 4: m_format = GL_RGBA; break;
+        default:
+            std::cerr << "Unsupported number of channels: " << nrChannels << std::endl;
+        }
+    }
+
+    void clearData()
+    {
+        m_data.clear();
+        m_data.shrink_to_fit();
+        m_ddsData.clear();
+        m_ddsData.shrink_to_fit();
+    }
 };
+

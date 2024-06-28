@@ -31,9 +31,12 @@ class cModel
 public:
     std::vector<cMesh> meshes;
     std::string directory;
-    std::unordered_map<std::string, Texture> m_TextureCache;
+    std::unordered_map<std::string, std::shared_ptr<Texture>> m_TextureCache;
 
-    std::vector<std::future<void>> m_Futures;
+    std::vector<float> m_CombinedInterleavedData;
+    std::vector<unsigned int> m_CombinedIndices;
+
+    GLuint m_VAO;
 
 
     cModel(const char* path);
@@ -42,16 +45,17 @@ public:
     void checkGLError(const std::string& message);
     GLuint loadDDSTexture(const std::string& path);
     Texture loadStandardTexture(const std::string& path);
-    void loadTexture(cgltf_texture* texture, Texture& textureObject);
+    void loadTexture(cgltf_texture* texture, std::shared_ptr<Texture>& textureObject);
     Material createMaterial(cgltf_primitive* primitive);
     void loadModel(const char* path);
     void processNode(cgltf_node* node, const glm::mat4& parentTransform = glm::mat4(1.0f));
-    void extractAttributes(cgltf_primitive* primitive, cgltf_accessor*& positions, cgltf_accessor*& normals, cgltf_accessor*& texCoords, cgltf_accessor*& tangents);
+    void extractAttributes(cgltf_primitive* primitive, cgltf_accessor*& positions, cgltf_accessor*& normals, cgltf_accessor*& texCoords0, cgltf_accessor*& texCoords1, cgltf_accessor*& tangents, cgltf_accessor*& colors);
     float* getBufferData(cgltf_accessor* accessor);
     cMesh processMesh(cgltf_mesh* mesh, glm::mat4 transform);
     cPrimitive processPrimitive(cgltf_primitive* primitive, GLenum& index_type);
     void uploadToGpu(Shader& shader);
     void batchTest();
+    void renderModelBatch(Shader& shader);
 
 };
 

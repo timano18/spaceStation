@@ -15,6 +15,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 #include <STB/stb_image.h>
+#include <STB/stb_image_resize2.h>
 #include <assert.h>
 #include <stdexcept>
 #include <unordered_map>

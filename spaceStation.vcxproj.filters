@@ -72,6 +72,9 @@
     <ClCompile Include="src\assetManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\base64.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\grassShader.frag">
@@ -155,6 +158,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\texture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MipmapData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\base64.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

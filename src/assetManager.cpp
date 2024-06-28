@@ -18,7 +18,7 @@ std::unordered_map<std::string, fs::path> findModelFiles(const char* dir)
 				{
 					std::string filename = entry.path().filename().string();
 					gltf_files[filename] = entry.path();
-					//std::cout << filename << std::endl;
+					std::cout << filename << "\n";
 				}
 			}
 		}

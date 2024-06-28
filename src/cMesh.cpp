@@ -37,13 +37,11 @@ void cMesh::combinePrimitiveData()
             m_CombinedIndices.push_back(static_cast<unsigned int>(index) + vertexOffset);
         }
 
-        std::cout << "Primitive interleavedDataSize: " << primitive.m_interleavedData.size() << "\n";
-        std::cout << "Primitive indicesSize: " << primitive.m_indices.size() << "\n";
 
         vertexOffset += primitive.m_interleavedData.size() / 11;
     }
-    std::cout << "\nCombined Interleaved data size: " << m_CombinedInterleavedData.size() << "\n";
-    std::cout << "\nCombined Indices data size: " << m_CombinedIndices.size() << "\n";
+
+    /*
 
     GLenum err;
     while ((err = glGetError()) != GL_NO_ERROR)
@@ -79,6 +77,7 @@ void cMesh::combinePrimitiveData()
     std::vector<unsigned short> temp_indices(m_CombinedIndices.begin(), m_CombinedIndices.end());
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_CombinedIndices.size() * sizeof(unsigned int), m_CombinedIndices.data(), GL_STATIC_DRAW);
     glBindVertexArray(0);
+    */
 }
 
 
